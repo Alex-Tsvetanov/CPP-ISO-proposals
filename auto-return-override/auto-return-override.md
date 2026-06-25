@@ -3,6 +3,7 @@ title: "Deduced return type for overriding functions via `auto`"
 document: DnnnnR0
 date: today
 audience:
+  - SG17 (EWG Incubator)
   - EWG (Evolution Working Group)
 author:
   - name: Alex Tsvetanov
@@ -55,6 +56,17 @@ struct B : A {
 ```
 
 :::
+
+# Introduction
+
+C++ requires an overriding virtual function to repeat the return type of the function
+it overrides, even though that type is fixed by the language and carries no new
+information. This paper proposes a small, self-contained extension: a function declared
+with the bare placeholder `auto` together with the `override` specifier takes its return
+type directly from the function it overrides. The change is a pure language extension —
+it makes a presently ill-formed spelling well-formed, alters no existing program, and
+requires no library, ABI, or object-model changes. The remainder of the paper motivates
+the feature, discusses the design, and provides proposed wording.
 
 # Revision history
 
