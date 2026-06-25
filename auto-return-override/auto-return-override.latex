@@ -1,0 +1,810 @@
+% Options for packages loaded elsewhere
+\PassOptionsToPackage{unicode}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+\PassOptionsToPackage{dvipsnames,svgnames,x11names}{xcolor}
+\documentclass[
+  english,
+  10pt,
+  a4paper,
+  oneside,
+  final]{article}
+\usepackage{xcolor}
+\usepackage[left=2.245cm,right=2.245cm,top=2.5cm,bottom=2.5cm]{geometry}
+\usepackage{amsmath,amssymb}
+\setcounter{secnumdepth}{5}
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provide euro and other symbols
+\else % if luatex or xetex
+  \usepackage{unicode-math} % this also loads fontspec
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+\usepackage{lmodern}
+\ifPDFTeX\else
+  % xetex/luatex font selection
+\fi
+% Use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\IfFileExists{microtype.sty}{% use microtype if available
+  \usepackage[]{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+  \IfFileExists{parskip.sty}{%
+    \usepackage{parskip}
+  }{% else
+    \setlength{\parindent}{0pt}
+    \setlength{\parskip}{6pt plus 2pt minus 1pt}}
+}{% if KOMA class
+  \KOMAoptions{parskip=half}}
+\makeatother
+% Make \paragraph and \subparagraph free-standing
+\makeatletter
+\ifx\paragraph\undefined\else
+  \let\oldparagraph\paragraph
+  \renewcommand{\paragraph}{
+    \@ifstar
+      \xxxParagraphStar
+      \xxxParagraphNoStar
+  }
+  \newcommand{\xxxParagraphStar}[1]{\oldparagraph*{#1}\mbox{}}
+  \newcommand{\xxxParagraphNoStar}[1]{\oldparagraph{#1}\mbox{}}
+\fi
+\ifx\subparagraph\undefined\else
+  \let\oldsubparagraph\subparagraph
+  \renewcommand{\subparagraph}{
+    \@ifstar
+      \xxxSubParagraphStar
+      \xxxSubParagraphNoStar
+  }
+  \newcommand{\xxxSubParagraphStar}[1]{\oldsubparagraph*{#1}\mbox{}}
+  \newcommand{\xxxSubParagraphNoStar}[1]{\oldsubparagraph{#1}\mbox{}}
+\fi
+\makeatother
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\usepackage{framed}
+\definecolor{shadecolor}{RGB}{246,248,250}
+\newenvironment{Shaded}{\begin{snugshade}}{\end{snugshade}}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{#1}}
+\newcommand{\AnnotationTok}[1]{#1}
+\newcommand{\AttributeTok}[1]{#1}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.62,0.41,0.03}{#1}}
+\newcommand{\BuiltInTok}[1]{\textcolor[rgb]{0.62,0.41,0.03}{#1}}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.62,0.41,0.03}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.42,0.45,0.49}{\textit{#1}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.42,0.45,0.49}{\textit{#1}}}
+\newcommand{\ConstantTok}[1]{#1}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.00,0.38,0.49}{#1}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.00,0.38,0.49}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.62,0.41,0.03}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.42,0.45,0.49}{#1}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{#1}}}
+\newcommand{\ExtensionTok}[1]{#1}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.62,0.41,0.03}{#1}}
+\newcommand{\FunctionTok}[1]{#1}
+\newcommand{\ImportTok}[1]{#1}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.42,0.45,0.49}{#1}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.00,0.38,0.49}{#1}}
+\newcommand{\NormalTok}[1]{#1}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.48,0.24,0.57}{#1}}
+\newcommand{\OtherTok}[1]{#1}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.44,0.31,0.22}{#1}}
+\newcommand{\RegionMarkerTok}[1]{#1}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.62,0.41,0.03}{#1}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.62,0.41,0.03}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.62,0.41,0.03}{#1}}
+\newcommand{\VariableTok}[1]{#1}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.62,0.41,0.03}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.42,0.45,0.49}{\textbf{#1}}}
+\usepackage{longtable,booktabs,array}
+\newcounter{none} % for unnumbered tables
+\usepackage{calc} % for calculating minipage widths
+% Correct order of tables after \paragraph or \subparagraph
+\usepackage{etoolbox}
+\makeatletter
+\patchcmd\longtable{\par}{\if@noskipsec\mbox{}\fi\par}{}{}
+\makeatother
+% Allow footnotes in longtable head/foot
+\IfFileExists{footnotehyper.sty}{\usepackage{footnotehyper}}{\usepackage{footnote}}
+\makesavenoteenv{longtable}
+\ifLuaTeX
+  \usepackage{luacolor}
+  \usepackage[soul]{lua-ul}
+\else
+  \usepackage{soul}
+\fi
+% definitions for citeproc citations
+\NewDocumentCommand\citeproctext{}{}
+\NewDocumentCommand\citeproc{mm}{%
+  \begingroup\def\citeproctext{#2}\cite{#1}\endgroup}
+\makeatletter
+ % allow citations to break across lines
+ \let\@cite@ofmt\@firstofone
+ % avoid brackets around text for \cite:
+ \def\@biblabel#1{}
+ \def\@cite#1#2{{#1\if@tempswa , #2\fi}}
+\makeatother
+\newlength{\cslhangindent}
+\setlength{\cslhangindent}{1.5em}
+\newlength{\csllabelwidth}
+\setlength{\csllabelwidth}{3em}
+\newenvironment{CSLReferences}[2] % #1 hanging-indent, #2 entry-spacing
+ {\begin{list}{}{%
+  \setlength{\itemindent}{0pt}
+  \setlength{\leftmargin}{0pt}
+  \setlength{\parsep}{0pt}
+  % turn on hanging indent if param 1 is 1
+  \ifodd #1
+   \setlength{\leftmargin}{\cslhangindent}
+   \setlength{\itemindent}{-1\cslhangindent}
+  \fi
+  % set entry spacing
+  \setlength{\itemsep}{#2\baselineskip}}}
+ {\end{list}}
+\usepackage{calc}
+\newcommand{\CSLBlock}[1]{\hfill\break\parbox[t]{\linewidth}{\strut\ignorespaces#1\strut}}
+\newcommand{\CSLLeftMargin}[1]{\parbox[t]{\csllabelwidth}{\strut#1\strut}}
+\newcommand{\CSLRightInline}[1]{\parbox[t]{\linewidth - \csllabelwidth}{\strut#1\strut}}
+\newcommand{\CSLIndent}[1]{\hspace{\cslhangindent}#1}
+\ifLuaTeX
+\usepackage[bidi=basic,shorthands=off]{babel}
+\else
+\usepackage[bidi=default,shorthands=off]{babel}
+\fi
+\ifLuaTeX
+  \usepackage{selnolig} % disable illegal ligatures
+\fi
+\setlength{\emergencystretch}{3em} % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\usepackage[normalem]{ulem}
+\providecommand{\CSLIndent}{}
+\renewcommand{\CSLIndent}[1]{\hfill\break\hspace*{\cslhangindent}\ignorespaces#1}
+
+% adjust quote indent
+\renewenvironment{quote}{\list{}{\leftmargin=0.2in}\item[]}{\endlist}
+
+% https://github.com/cplusplus/draft/blob/97b615a5a6ab0598b624ee05402c531d0421cff6/source/styles.tex#L127-L133
+\renewcommand{\labelitemi}{---}
+\renewcommand{\labelitemii}{---}
+\renewcommand{\labelitemiii}{---}
+\renewcommand{\labelitemiv}{---}
+
+% https://github.com/cplusplus/draft/blob/97b615a5a6ab0598b624ee05402c531d0421cff6/source/layout.tex#L32-L68
+\makeatletter
+\newcommand{\pnum}[1]{%
+\noindent\makebox[0pt][l]{\makebox[0pt][r]{%
+\scriptsize\raisebox{.7ex}{#1}%
+\hspace{\@totalleftmargin}\quad%
+}}\ignorespaces}
+\makeatother
+\usepackage{bookmark}
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\urlstyle{same}
+\hypersetup{
+  pdftitle={Deduced return type for overriding functions via `auto`},
+  pdflang={en},
+  colorlinks=true,
+  linkcolor={blue},
+  filecolor={Maroon},
+  citecolor={blue},
+  urlcolor={blue},
+  pdfcreator={LaTeX via pandoc}}
+\hypersetup{pdfcreator={mpark/wg21}}
+
+\makeatletter
+\def\@maketitle{
+  \newpage \null \vskip 2em
+  {\center \LARGE \@title \par}
+  \vskip 1.5em
+  \begin{flushright}
+    \begin{tabular}{ll}
+Document \#:&DnnnnR0\\
+Date:       &\@date\\
+Project:    &Programming Language C++\\
+Audience:   &SG17 (EWG Incubator)\\&EWG (Evolution Working Group)\\
+Reply-to:   \@author
+    \end{tabular}
+  \end{flushright}
+}
+\makeatother
+
+\title{Deduced return type for overriding functions via
+\VERB|\KeywordTok{auto}|}
+\author{&Alex
+Tsvetanov\\&<\href{mailto:alex_tsvetanov_2002@abv.bg}{\nolinkurl{alex\_tsvetanov\_2002@abv.bg}}>\\}
+\date{2026-06-25}
+
+\begin{document}
+\hypertarget{title-block-header}{\label{title-block-header}}
+\maketitle
+
+{
+\hypersetup{linkcolor=black}
+\setcounter{tocdepth}{2}
+\hypertarget{toctitle}{\label{toctitle}}
+\tableofcontents
+}
+\section{\texorpdfstring{Abstract\hyperref[abstract]{}}{Abstract}}\label{abstract}
+
+A function that overrides a virtual function must, today, repeat the
+overridden function's return type --- either by spelling it out or by
+reconstructing it with a trailing-return-type such as
+\VERB|\OperatorTok{{-}\textgreater{}} \KeywordTok{decltype}\OperatorTok{(}\NormalTok{std}\OperatorTok{::}\NormalTok{declval}\OperatorTok{\textless{}}\NormalTok{Base}\OperatorTok{\textgreater{}().}\NormalTok{f}\OperatorTok{())}|.
+This paper proposes that a function declared with the bare placeholder
+\VERB|\KeywordTok{auto}| \emph{and} the \VERB|\KeywordTok{override}|
+specifier deduce its return type to be \textbf{exactly the return type
+of the function it overrides}. Because \VERB|\KeywordTok{override}|
+already guarantees that a matching base function exists, the deduction
+is unambiguous, requires no function body, and the resulting function is
+an ordinary virtual function in every other respect.
+
+{\def\LTcaptype{none} % do not increment counter
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\linewidth - 2\tabcolsep) * \real{0.5000}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 2\tabcolsep) * \real{0.5000}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+\centering\arraybackslash\textbf{Before}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+\centering\arraybackslash\textbf{After}
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+\begin{minipage}[t]{\linewidth}\raggedright
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{struct}\NormalTok{ A }\OperatorTok{\{}
+  \KeywordTok{virtual} \DataTypeTok{int}\NormalTok{ test}\OperatorTok{()} \OperatorTok{\{} \ControlFlowTok{return} \DecValTok{5}\OperatorTok{;} \OperatorTok{\}}
+\OperatorTok{\};}
+
+\KeywordTok{struct}\NormalTok{ B }\OperatorTok{:}\NormalTok{ A }\OperatorTok{\{}
+  \CommentTok{// Return type must be restated, either literally...}
+  \DataTypeTok{int}\NormalTok{ test}\OperatorTok{()} \KeywordTok{override} \OperatorTok{\{} \ControlFlowTok{return} \DecValTok{6}\OperatorTok{;} \OperatorTok{\}}
+
+  \CommentTok{// ...or reconstructed when A::test\textquotesingle{}s type is awkward to name:}
+  \KeywordTok{auto}\NormalTok{ test2}\OperatorTok{()} \OperatorTok{{-}\textgreater{}} \KeywordTok{decltype}\OperatorTok{(}\NormalTok{std}\OperatorTok{::}\NormalTok{declval}\OperatorTok{\textless{}}\NormalTok{A}\OperatorTok{\textgreater{}().}\NormalTok{test2}\OperatorTok{())}
+      \KeywordTok{override} \OperatorTok{\{} \ControlFlowTok{return} \DecValTok{6}\OperatorTok{;} \OperatorTok{\}}
+\OperatorTok{\};}
+\end{Highlighting}
+\end{Shaded}
+\end{minipage} & \begin{minipage}[t]{\linewidth}\raggedright
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{struct}\NormalTok{ A }\OperatorTok{\{}
+  \KeywordTok{virtual} \DataTypeTok{int}\NormalTok{ test}\OperatorTok{()} \OperatorTok{\{} \ControlFlowTok{return} \DecValTok{5}\OperatorTok{;} \OperatorTok{\}}
+\OperatorTok{\};}
+
+\KeywordTok{struct}\NormalTok{ B }\OperatorTok{:}\NormalTok{ A }\OperatorTok{\{}
+  \CommentTok{// Return type is taken from the overridden function.}
+  \KeywordTok{auto}\NormalTok{ test}\OperatorTok{()} \KeywordTok{override} \OperatorTok{\{} \ControlFlowTok{return} \DecValTok{6}\OperatorTok{;} \OperatorTok{\}}
+
+  \KeywordTok{auto}\NormalTok{ test2}\OperatorTok{()} \KeywordTok{override} \OperatorTok{\{} \ControlFlowTok{return} \DecValTok{6}\OperatorTok{;} \OperatorTok{\}}
+\OperatorTok{\};}
+\end{Highlighting}
+\end{Shaded}
+\end{minipage} \\
+\end{longtable}
+}
+
+\section{\texorpdfstring{Introduction\hyperref[introduction]{}}{Introduction}}\label{introduction}
+
+C++ requires an overriding virtual function to repeat the return type of
+the function it overrides, even though that type is fixed by the
+language and carries no new information. This paper proposes a small,
+self-contained extension: a function declared with the bare placeholder
+\VERB|\KeywordTok{auto}| together with the \VERB|\KeywordTok{override}|
+specifier takes its return type directly from the function it overrides.
+The change is a pure language extension --- it makes a presently
+ill-formed spelling well-formed, alters no existing program, and
+requires no library, ABI, or object-model changes. The remainder of the
+paper motivates the feature, discusses the design, and provides proposed
+wording.
+
+\section{\texorpdfstring{Revision
+history\hyperref[revision-history]{}}{Revision history}}\label{revision-history}
+
+\subsection*{\texorpdfstring{R0\hyperref[r0]{}}{R0}}\label{r0}
+\addcontentsline{toc}{subsection}{R0{}}
+
+\begin{itemize}
+\tightlist
+\item
+  Initial revision.
+\end{itemize}
+
+\section{\texorpdfstring{Motivation and
+scope\hyperref[motivation-and-scope]{}}{Motivation and scope}}\label{motivation-and-scope}
+
+\subsection{\texorpdfstring{The
+problem\hyperref[the-problem]{}}{The problem}}\label{the-problem}
+
+When overriding a virtual function, the override's return type is
+constrained by the language: it must be \emph{identical} to the base
+function's return type, or a legal covariant type
+(\href{https://eel.is/c++draft/class.virtual}{{[}class.virtual{]}}). The
+programmer therefore gains nothing by restating the return type --- it
+carries no new information, it cannot legally differ (except for
+covariance), and it must be kept in sync by hand.
+
+This redundancy becomes actively harmful when the base return type is
+verbose, dependent, or obtained through metaprogramming. The idiomatic
+way to ``inherit'' the return type today is:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{struct}\NormalTok{ B }\OperatorTok{:}\NormalTok{ A }\OperatorTok{\{}
+  \KeywordTok{auto}\NormalTok{ test}\OperatorTok{()} \OperatorTok{{-}\textgreater{}} \KeywordTok{decltype}\OperatorTok{(}\NormalTok{std}\OperatorTok{::}\NormalTok{declval}\OperatorTok{\textless{}}\NormalTok{A}\OperatorTok{\textgreater{}().}\NormalTok{test}\OperatorTok{())} \KeywordTok{override} \OperatorTok{\{} \ControlFlowTok{return} \DecValTok{6}\OperatorTok{;} \OperatorTok{\}}
+\OperatorTok{\};}
+\end{Highlighting}
+\end{Shaded}
+
+That trailing-return-type is pure boilerplate: it names the base class
+explicitly (\VERB|\NormalTok{A}|), it duplicates the function name
+(\VERB|\NormalTok{test}|), and it is fragile under refactoring ---
+renaming the base, or moving the function through the hierarchy,
+silently requires the expression to be updated. Worse,
+\VERB|\NormalTok{std}\OperatorTok{::}\NormalTok{declval}|/\VERB|\KeywordTok{decltype}|
+is an advanced idiom that obscures a trivial intent: \emph{``return
+whatever the base returns.''}
+
+\subsection{\texorpdfstring{What this paper
+proposes\hyperref[what-this-paper-proposes]{}}{What this paper proposes}}\label{what-this-paper-proposes}
+
+Allow a virtual override to be written with the bare placeholder type
+\VERB|\KeywordTok{auto}| and no trailing-return-type:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{struct}\NormalTok{ B }\OperatorTok{:}\NormalTok{ A }\OperatorTok{\{}
+  \KeywordTok{auto}\NormalTok{ test}\OperatorTok{()} \KeywordTok{override} \OperatorTok{\{} \ControlFlowTok{return} \DecValTok{6}\OperatorTok{;} \OperatorTok{\}}
+\OperatorTok{\};}
+\end{Highlighting}
+\end{Shaded}
+
+When a function is declared this way, its return type is determined to
+be \textbf{the return type of the unique function it overrides} in a
+direct or indirect base class. The determination happens at the point of
+declaration from the override relationship --- it does \textbf{not}
+depend on the function body --- so the function behaves exactly as if
+the return type had been written out by hand.
+
+\subsection{\texorpdfstring{Why this is safe and
+small\hyperref[why-this-is-safe-and-small]{}}{Why this is safe and small}}\label{why-this-is-safe-and-small}
+
+The proposal deliberately ties the feature to the
+\VERB|\KeywordTok{override}| specifier (see {[}design.trigger{]}). The
+\VERB|\KeywordTok{override}| keyword already makes the program
+ill-formed unless the function overrides a base virtual function
+(\href{https://eel.is/c++draft/class.virtual\#4}{{[}class.virtual{]}/4}),
+so by construction there is always exactly one return type to copy. The
+feature therefore introduces no new failure mode that
+\VERB|\KeywordTok{override}| did not already diagnose: a function marked
+\VERB|\KeywordTok{override}| that fails to override anything is
+ill-formed today, and remains ill-formed under this proposal.
+
+\section{\texorpdfstring{Design
+discussion\hyperref[design-discussion]{}}{Design discussion}}\label{design-discussion}
+
+\subsection{\texorpdfstring{The feature is triggered only by
+\texttt{override}\hyperref[design.trigger]{}}{The feature is triggered only by override}}\label{design.trigger}
+
+Deduction applies only to a function declared with \textbf{both} the
+placeholder type \VERB|\KeywordTok{auto}| \textbf{and} the
+\VERB|\KeywordTok{override}| specifier. We do \emph{not} extend it to
+any function that merely happens to match a base virtual signature.
+
+Tying the feature to \VERB|\KeywordTok{override}| has three benefits:
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{A return type always exists to copy.}
+  \VERB|\KeywordTok{override}| guarantees a matching base function, so
+  the deduction can never silently fail to find a source.
+\item
+  \textbf{Intent is explicit.} The reader sees
+  \VERB|\KeywordTok{override}| and knows the function is bound to a base
+  contract; the return type following from that contract is
+  unsurprising.
+\item
+  \textbf{No accidental coupling.} A non-\VERB|\KeywordTok{override}|
+  function with a deduced return type continues to deduce from its body,
+  exactly as today. Adding or removing a base virtual function never
+  silently changes the meaning of an unrelated \VERB|\KeywordTok{auto}|
+  function.
+\end{itemize}
+
+\subsection{\texorpdfstring{The deduced type is the overridden
+function's type,
+exactly\hyperref[design.exact]{}}{The deduced type is the overridden function's type, exactly}}\label{design.exact}
+
+The return type is copied verbatim from the overridden function. It is
+\textbf{not} deduced from the override's \VERB|\ControlFlowTok{return}|
+statements. Two consequences:
+
+\begin{itemize}
+\item
+  The function body is irrelevant to the return type. A declaration with
+  no definition (e.g.~an out-of-line definition) is fully supported:
+
+  \begin{Shaded}
+  \begin{Highlighting}[]
+  \KeywordTok{struct}\NormalTok{ B }\OperatorTok{:}\NormalTok{ A }\OperatorTok{\{}
+    \KeywordTok{auto}\NormalTok{ test}\OperatorTok{()} \KeywordTok{override}\OperatorTok{;}     \CommentTok{// return type is A::test\textquotesingle{}s type: int}
+  \OperatorTok{\};}
+  \DataTypeTok{int}\NormalTok{ B}\OperatorTok{::}\NormalTok{test}\OperatorTok{()} \OperatorTok{\{} \ControlFlowTok{return} \DecValTok{6}\OperatorTok{;} \OperatorTok{\}} \CommentTok{// out{-}of{-}line definition; type already fixed}
+  \end{Highlighting}
+  \end{Shaded}
+\item
+  \textbf{Covariance is not synthesized.} Today an override of
+  \VERB|\NormalTok{Base}\OperatorTok{*}\NormalTok{ f}\OperatorTok{()}|
+  may return \VERB|\NormalTok{Derived}\OperatorTok{*}|. Under this
+  proposal,
+  \VERB|\KeywordTok{auto}\NormalTok{ f}\OperatorTok{()} \KeywordTok{override}|
+  yields exactly \VERB|\NormalTok{Base}\OperatorTok{*}|. A programmer
+  who wants a covariant return type must still write it explicitly:
+
+  \begin{Shaded}
+  \begin{Highlighting}[]
+  \KeywordTok{struct}\NormalTok{ A }\OperatorTok{\{} \KeywordTok{virtual}\NormalTok{ A}\OperatorTok{*}\NormalTok{ clone}\OperatorTok{();} \OperatorTok{\};}
+  \KeywordTok{struct}\NormalTok{ B }\OperatorTok{:}\NormalTok{ A }\OperatorTok{\{}
+    \KeywordTok{auto}\NormalTok{  clone}\OperatorTok{()} \KeywordTok{override}\OperatorTok{;}   \CommentTok{// returns A*  (base type, exactly)}
+  \NormalTok{  B}\OperatorTok{*}\NormalTok{    clone2}\OperatorTok{()} \KeywordTok{override}\OperatorTok{;}  \CommentTok{// covariant return type, written out (unchanged today)}
+  \OperatorTok{\};}
+  \end{Highlighting}
+  \end{Shaded}
+\end{itemize}
+
+This keeps the rule trivially simple --- \emph{the override's type is
+the overridden function's type} --- and preserves covariance as an
+explicit, opt-in act rather than something the compiler infers.
+
+\subsection{\texorpdfstring{Ambiguity across multiple base
+functions\hyperref[ambiguity-across-multiple-base-functions]{}}{Ambiguity across multiple base functions}}\label{ambiguity-across-multiple-base-functions}
+
+A function may override more than one base function under multiple
+inheritance. If the overridden functions do not all have the same return
+type, there is no single type to copy and the program is ill-formed:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{struct}\NormalTok{ A }\OperatorTok{\{} \KeywordTok{virtual} \DataTypeTok{int}\NormalTok{  f}\OperatorTok{();} \OperatorTok{\};}
+\KeywordTok{struct}\NormalTok{ C }\OperatorTok{\{} \KeywordTok{virtual} \DataTypeTok{long}\NormalTok{ f}\OperatorTok{();} \OperatorTok{\};}
+\KeywordTok{struct}\NormalTok{ D }\OperatorTok{:}\NormalTok{ A}\OperatorTok{,}\NormalTok{ C }\OperatorTok{\{}
+  \KeywordTok{auto}\NormalTok{ f}\OperatorTok{()} \KeywordTok{override}\OperatorTok{;}  \CommentTok{// ill{-}formed: A::f returns int, C::f returns long}
+\OperatorTok{\};}
+\end{Highlighting}
+\end{Shaded}
+
+Note this case is already ill-formed today for a different reason (an
+override cannot simultaneously satisfy two incompatible base return
+types), so the proposal does not introduce a new diagnosable situation
+here; it only specifies which diagnostic applies.
+
+\subsection{\texorpdfstring{\texttt{decltype(auto)} and other
+placeholders\hyperref[decltypeauto-and-other-placeholders]{}}{decltype(auto) and other placeholders}}\label{decltypeauto-and-other-placeholders}
+
+This paper addresses only the bare placeholder \VERB|\KeywordTok{auto}|.
+A virtual function declared with
+\VERB|\KeywordTok{decltype}\OperatorTok{(}\KeywordTok{auto}\OperatorTok{)}|
+or a constrained placeholder
+(e.g.~\VERB|\NormalTok{std}\OperatorTok{::}\NormalTok{integral }\KeywordTok{auto}|)
+remains ill-formed, as today. Extending the feature to those spellings
+is possible future work (see {[}future{]}) but is intentionally out of
+scope to keep the rule minimal.
+
+\subsection{\texorpdfstring{Relationship to the existing prohibition on
+virtual
+\texttt{auto}\hyperref[relationship-to-the-existing-prohibition-on-virtual-auto]{}}{Relationship to the existing prohibition on virtual auto}}\label{relationship-to-the-existing-prohibition-on-virtual-auto}
+
+Today, a function whose declared return type uses a placeholder type
+``shall not be declared \VERB|\KeywordTok{virtual}|'' --- a
+deduced-from-body return type is incompatible with the vtable model
+because the type must be known to all translation units that see the
+class definition. This proposal does \textbf{not} weaken that rationale:
+the return type of an
+\VERB|\KeywordTok{auto}\NormalTok{ … }\KeywordTok{override}| function is
+known from the class definition (it is the base's return type, which is
+visible wherever the derived class is complete), so every translation
+unit agrees on the type without seeing the body. The proposal therefore
+carves a narrow, well-defined exception out of the existing prohibition
+rather than removing it.
+
+\subsection{\texorpdfstring{Interaction with \texttt{final}, access,
+\texttt{noexcept}, and
+qualifiers\hyperref[interaction-with-final-access-noexcept-and-qualifiers]{}}{Interaction with final, access, noexcept, and qualifiers}}\label{interaction-with-final-access-noexcept-and-qualifiers}
+
+\VERB|\KeywordTok{final}|, access specifiers,
+\VERB|\KeywordTok{noexcept}|, ref-qualifiers, and cv-qualifiers are
+orthogonal to the return type and are unaffected.
+\VERB|\KeywordTok{auto}\NormalTok{ f}\OperatorTok{()} \KeywordTok{const} \KeywordTok{override}|,
+\VERB|\KeywordTok{auto}\NormalTok{ f}\OperatorTok{()} \OperatorTok{\&\&} \KeywordTok{override}|,
+\VERB|\KeywordTok{auto}\NormalTok{ f}\OperatorTok{()} \KeywordTok{noexcept} \KeywordTok{override}|
+all behave as expected: the signature determines which base function is
+overridden, and that function's return type is copied.
+
+\section{\texorpdfstring{Proposed
+wording\hyperref[proposed-wording]{}}{Proposed wording}}\label{proposed-wording}
+
+The proposed changes are relative to the C++ working draft
+\href{https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2026/n5046.pdf}{{[}N5046{]}}.
+Existing standard text is quoted verbatim;
+{{\color[HTML]{006e28}\uline{inserted text is shown like this}}} and
+{{\color[HTML]{bf0303}\sout{removed text like this}}}. Paragraph numbers
+match N5046 and are to be adjusted editorially. Three paragraphs/tables
+are affected.
+
+\subsection{\texorpdfstring{Change 1 --- relax the virtual-function
+prohibition\hyperref[change-1-relax-the-virtual-function-prohibition]{}}{Change 1 --- relax the virtual-function prohibition}}\label{change-1-relax-the-virtual-function-prohibition}
+
+In
+\textbf{\href{https://eel.is/c++draft/dcl.spec.auto.general}{{[}dcl.spec.auto.general{]}}}
+paragraph 17, the placeholder return type is forbidden on \emph{every}
+virtual function. The current text reads, in its entirety:
+
+\begin{quote}
+\pnum{17} A function declared with a return type that uses a placeholder
+type shall not be virtual
+(\href{https://eel.is/c++draft/class.virtual}{{[}class.virtual{]}}).
+\end{quote}
+
+Modify it to permit the bare-\VERB|\KeywordTok{auto}| +
+\VERB|\KeywordTok{override}| form:
+
+\begin{quote}
+\pnum{17} A function declared with a return type that uses a placeholder
+type shall not be virtual
+(\href{https://eel.is/c++draft/class.virtual}{{[}class.virtual{]}}){{\color[HTML]{bf0303}\sout{.}}}
+{{\color[HTML]{006e28}\uline{unless the placeholder type is the
+\VERB|\NormalTok{auto}| \emph{type-specifier} not followed by a
+\emph{trailing-return-type} and the function is declared with the
+\VERB|\NormalTok{override}| \emph{virt-specifier}; in that case the
+return type of the function is determined from the function it
+overrides, as specified in
+\href{https://eel.is/c++draft/class.virtual}{{[}class.virtual{]}}.
+{[}Note: The return type of such a function is therefore not deduced
+from its \VERB|\NormalTok{return}| statements
+(\href{https://eel.is/c++draft/dcl.spec.auto.general}{{[}dcl.spec.auto.general{]}}).
+--- end note{]}}}}
+\end{quote}
+
+\emph{Drafting note.} No other paragraph of
+\href{https://eel.is/c++draft/dcl.spec.auto.general}{{[}dcl.spec.auto.general{]}}
+needs to change: paragraph 8 (``a program that uses a placeholder type
+in a context not explicitly allowed \ldots{} is ill-formed'') already
+defers to the per-context rules, and this is the only context that
+forbade a virtual function.
+
+\subsection{\texorpdfstring{Change 2 --- specify the return type from
+the overridden
+function\hyperref[change-2-specify-the-return-type-from-the-overridden-function]{}}{Change 2 --- specify the return type from the overridden function}}\label{change-2-specify-the-return-type-from-the-overridden-function}
+
+In
+\textbf{\href{https://eel.is/c++draft/class.virtual}{{[}class.virtual{]}}},
+the override-matching rule (paragraph 2) keys on the \emph{name} and
+\emph{parameter-type-list} and never on the return type, and paragraph 5
+makes \VERB|\KeywordTok{override}| ill-formed unless the function
+overrides something. Add a new paragraph immediately after paragraph 8
+(the covariant-return-type rule) to determine the return type in the new
+case. For reference, paragraph 8 currently begins:
+
+\begin{quote}
+\pnum{8} The return type of an overriding function shall be either
+identical to the return type of the overridden function or covariant
+with the classes of the functions. {[}\ldots{]}
+\end{quote}
+
+Insert after it:
+
+{\color[HTML]{006e28}
+
+\begin{quote}
+\pnum{(8.*)} If the declared return type of an overriding function
+\VERB|\NormalTok{G}| uses the \VERB|\NormalTok{auto}| placeholder type
+(\href{https://eel.is/c++draft/dcl.spec.auto}{{[}dcl.spec.auto{]}}),
+then \VERB|\NormalTok{G}| is declared with the
+\VERB|\NormalTok{override}| \emph{virt-specifier}
+(\href{https://eel.is/c++draft/dcl.spec.auto.general}{{[}dcl.spec.auto.general{]}})
+and therefore overrides at least one function
+(\href{https://eel.is/c++draft/class.virtual\#5}{{[}class.virtual{]}/5}).
+If the functions that \VERB|\NormalTok{G}| overrides do not all have the
+same return type, the program is ill-formed. Otherwise, the return type
+of \VERB|\NormalTok{G}| is that common return type. {[}Note: This return
+type is identical to the return type of each overridden function and is
+therefore not covariant
+(\href{https://eel.is/c++draft/class.virtual\#8}{{[}class.virtual{]}/8})
+with it. A covariant return type must be declared explicitly. --- end
+note{]}
+\end{quote}
+
+}
+
+\emph{Drafting note.} Because paragraph 2's override matching does not
+consult the return type, the set of overridden functions --- and hence
+``that common return type'' --- is well-defined before
+\VERB|\NormalTok{G}|'s return type is known; there is no circularity.
+
+\subsection{\texorpdfstring{Change 3 --- feature-test
+macro\hyperref[change-3-feature-test-macro]{}}{Change 3 --- feature-test macro}}\label{change-3-feature-test-macro}
+
+In
+\textbf{\href{https://eel.is/c++draft/cpp.predefined}{{[}cpp.predefined{]}}},
+add a row to Table {[}tab:cpp.predefined.ft{]} (``Feature-test
+macros''), in alphabetical order among the other
+\VERB|\NormalTok{\_\_cpp\_}| macros:
+
+{\color[HTML]{006e28}
+
+\begin{quote}
+{\def\LTcaptype{none} % do not increment counter
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\linewidth - 2\tabcolsep) * \real{0.5000}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 2\tabcolsep) * \real{0.5000}}@{}}
+\toprule\noalign{}
+\centering\arraybackslash\textbf{Macro name} &
+\centering\arraybackslash\textbf{Value} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+\VERB|\NormalTok{\_\_cpp\_deduced\_virtual\_override\_return}| &
+\VERB|\NormalTok{202606L}| \\
+\end{longtable}
+}
+\end{quote}
+
+}
+
+\emph{Drafting note.} The value \VERB|\DecValTok{202606}\BuiltInTok{L}|
+is provisional; the editor assigns the year-and-month
+(\VERB|\NormalTok{YYYYMML}|) of the meeting at which the feature is
+adopted. The name uses ``virtual'' because the feature applies precisely
+to virtual functions: \VERB|\KeywordTok{override}| is permitted only on
+a function that overrides a base virtual function
+(\href{https://eel.is/c++draft/class.virtual\#5}{{[}class.virtual{]}/5}),
+which is therefore itself virtual.
+
+\subsection{\texorpdfstring{Summary of
+edits\hyperref[summary-of-edits]{}}{Summary of edits}}\label{summary-of-edits}
+
+{\def\LTcaptype{none} % do not increment counter
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\linewidth - 6\tabcolsep) * \real{0.2500}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 6\tabcolsep) * \real{0.2500}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 6\tabcolsep) * \real{0.2500}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 6\tabcolsep) * \real{0.2500}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+\centering\arraybackslash\textbf{\#}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+\centering\arraybackslash\textbf{Stable label}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+\centering\arraybackslash\textbf{Location}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+\centering\arraybackslash\textbf{Edit}
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+1 &
+\href{https://eel.is/c++draft/dcl.spec.auto.general}{{[}dcl.spec.auto.general{]}}
+& para 17 & Append an exception permitting \VERB|\KeywordTok{auto}| +
+\VERB|\KeywordTok{override}|; point to
+\href{https://eel.is/c++draft/class.virtual}{{[}class.virtual{]}} for
+the resulting type. \\
+2 & \href{https://eel.is/c++draft/class.virtual}{{[}class.virtual{]}} &
+new para, after 8 & Fix the return type to the overridden function's;
+make differing return types across multiple overridden functions
+ill-formed. \\
+3 & \href{https://eel.is/c++draft/cpp.predefined}{{[}cpp.predefined{]}}
+& Table {[}tab:cpp.predefined.ft{]} & Add the
+\VERB|\NormalTok{\_\_cpp\_deduced\_virtual\_override\_return}|
+feature-test macro. \\
+\end{longtable}
+}
+
+\section{\texorpdfstring{Impact on the
+Standard\hyperref[impact-on-the-standard]{}}{Impact on the Standard}}\label{impact-on-the-standard}
+
+This is a pure language extension. It:
+
+\begin{itemize}
+\tightlist
+\item
+  changes no existing valid program's meaning (code that does not
+  combine \VERB|\KeywordTok{auto}| with \VERB|\KeywordTok{override}| is
+  unaffected);
+\item
+  makes well-formed a category of declarations that are ill-formed today
+  (\VERB|\KeywordTok{auto}\NormalTok{ f}\OperatorTok{()} \KeywordTok{override}|
+  with no trailing-return-type on a virtual function);
+\item
+  requires no library changes;
+\item
+  requires no changes to the ABI or object model --- an
+  \VERB|\KeywordTok{auto}\NormalTok{ … }\KeywordTok{override}| function
+  has the same type, mangling, and vtable slot it would have had if its
+  return type were written out by hand.
+\end{itemize}
+
+There are no breaking changes and no deprecations.
+
+\section{\texorpdfstring{Implementation
+experience\hyperref[implementation-experience]{}}{Implementation experience}}\label{implementation-experience}
+
+The feature requires no novel analysis. A conforming compiler already:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  resolves which base function(s) a member overrides (to validate
+  \VERB|\KeywordTok{override}| and covariance), and
+\item
+  has the overridden function's return type available at that point.
+\end{enumerate}
+
+Implementing the proposal amounts to: when a virtual function's declared
+return type is the bare \VERB|\KeywordTok{auto}| placeholder and
+\VERB|\KeywordTok{override}| is present, set the function's return type
+to the overridden function's return type (after the existing override
+resolution) instead of entering body-based deduction. No implementation
+experience exists yet; the author believes a prototype in a major
+compiler is straightforward and intends to pursue one.
+
+\section{\texorpdfstring{Future
+directions\hyperref[future]{}}{Future directions}}\label{future}
+
+The following are intentionally \textbf{out of scope} for this paper but
+are natural follow-ups:
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{\VERB|\KeywordTok{decltype}\OperatorTok{(}\KeywordTok{auto}\OperatorTok{)}|
+  overrides.} Could be defined to copy the base type with its value
+  category, though the practical benefit over \VERB|\KeywordTok{auto}|
+  is small.
+\item
+  \textbf{Deduced covariant return types.} Allowing
+  \VERB|\KeywordTok{auto}| to deduce a covariant type from the body
+  (rather than copying the base type exactly) was considered and
+  rejected for R0 in favor of a simpler rule; it could be revisited.
+\item
+  \textbf{Dropping the \VERB|\KeywordTok{override}| requirement.}
+  Permitting deduction for any overriding function was rejected (see
+  {[}design.trigger{]}); revisiting it would require a story for silent
+  overrides and accidental coupling.
+\end{itemize}
+
+\section{\texorpdfstring{Acknowledgements\hyperref[acknowledgements]{}}{Acknowledgements}}\label{acknowledgements}
+
+\emph{To be added.}
+
+\section{\texorpdfstring{References\hyperref[references]{}}{References}}\label{references}
+
+\section{\texorpdfstring{References\hyperref[bibliography]{}}{References}}\label{bibliography}
+
+\protect\phantomsection\label{refs}
+\begin{CSLReferences}{0}{0}
+\bibitem[\citeproctext]{ref-N5046}
+{[}N5046{]} 2026-05-12. Working Draft, Programming Languages --- C++.
+\href{https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2026/n5046.pdf}{
+\CSLIndent{https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2026/n5046.pdf}}
+
+\end{CSLReferences}
+
+\end{document}

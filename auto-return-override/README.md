@@ -14,7 +14,7 @@ struct B : A {
 ```
 
 Audience: **EWG** (Evolution Working Group).
-Author: Alex Tsvetanov (<Alex.Tsvetanov@acronis.com>).
+Author: Alex Tsvetanov (<alex_tsvetanov_2002@abv.bg>).
 
 ## Files
 
@@ -27,19 +27,36 @@ Author: Alex Tsvetanov (<Alex.Tsvetanov@acronis.com>).
 ## Building the paper (HTML / PDF)
 
 The proposal is written for the [mpark/wg21](https://github.com/mpark/wg21)
-Pandoc-based framework.
+Pandoc-based framework, which produces the WG21 cover page, side-by-side Tony
+tables, and live stable-label links to the standard draft.
+
+### This repo (Windows / Git Bash, or Linux / macOS)
+
+[`build.sh`](build.sh) drives the framework's Pandoc command directly, so it
+works on Windows where the framework's own `make`/install scripts do not. It
+clones `mpark/wg21` (as a sibling `../wg21`), sets up a Python venv, downloads
+the citation and stable-label databases on first run, then builds all formats:
 
 ```sh
-# one-time: clone the framework somewhere
-git clone https://github.com/mpark/wg21.git
+./build.sh              # build auto-return-override.{html,latex,pdf}
+./build.sh html         # build a single format (html | latex | pdf)
+REFRESH=1 ./build.sh    # re-download the citation / stable-label databases
+WG21_DIR=/path ./build.sh   # reuse an existing mpark/wg21 checkout
+```
 
-# from this directory, point the framework's Makefile at this file
-make -C /path/to/wg21 \
-     "$(pwd)/auto-return-override.pdf"   # or .html
+Requirements: Pandoc **3.9.0.2** (the version the framework pins), Python 3, and
+a LaTeX engine with `xelatex` (MiKTeX or TeX Live) for the PDF. Open network is
+needed on the first run only — the databases are cached in the `wg21` checkout.
+
+### Canonical path (Linux / macOS with `make`)
+
+```sh
+git clone https://github.com/mpark/wg21.git
+make -C /path/to/wg21 "$(pwd)/auto-return-override.pdf"   # or .html / .latex
 ```
 
 See the framework's [README](https://github.com/mpark/wg21/blob/master/README.md)
-for dependency installation (Pandoc, a LaTeX distribution for PDF output).
+for dependency details.
 
 ## Status
 
