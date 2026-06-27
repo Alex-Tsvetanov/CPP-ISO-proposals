@@ -1,0 +1,5 @@
+[submodule "auto-return-override/lab/clang/llvm-project"]
+	path = auto-return-override/lab/clang/llvm-project
+	url = https://github.com/Alex-Tsvetanov/llvm-project.git
+	branch = auto-return-override
+	ignore = dirty
