@@ -1,0 +1,23 @@
+# Cloned source corpora and the LLVM/Clang fork + build are large and must NOT be
+# committed to the proposal repo. Only scripts, matchers, tests, and findings are tracked.
+
+repos/*
+!repos/.gitkeep
+
+clang/*
+!clang/.gitkeep
+
+# Scan intermediates
+**/compile_commands.json
+*.log
+*.tmp
+
+# findings/ holds the evidence and IS committed (per CLAUDE.md: "the underlying hits saved
+# alongside" every number). The ONE exception is the multi-MB raw denominator dump, which is
+# fully regenerable with scan_ripgrep.sh — keep it out of git.
+findings/raw/_all_override_decls.txt
+
+# Build/test artifacts
+*.o
+*.obj
+a.out

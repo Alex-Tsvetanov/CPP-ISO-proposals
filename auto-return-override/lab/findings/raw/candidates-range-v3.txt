@@ -1,0 +1,2 @@
+D:/GitHub/CPP-ISO-proposals/auto-return-override/lab/repos/range-v3/include\range\v3\view\any_view.hpp:525:            any_cursor<Ref, Cat> begin_cursor() override
+D:/GitHub/CPP-ISO-proposals/auto-return-override/lab/repos/range-v3/include\range\v3\view\any_view.hpp:534:            std::unique_ptr<any_cloneable_view_interface<Ref, Cat>> clone() const override

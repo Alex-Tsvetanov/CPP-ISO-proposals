@@ -1,0 +1,11 @@
+D:/GitHub/CPP-ISO-proposals/auto-return-override/lab/repos/llvm-project/clang\unittests\ASTMatchers\ASTMatchersNarrowingTest.cpp:2225:      matches("template <typename Base> struct Y : Base { void f() override;};",
+D:/GitHub/CPP-ISO-proposals/auto-return-override/lab/repos/llvm-project/libcxxabi\src\demangle\ItaniumDemangle.h:1306:  void printLeft(OutputBuffer &OB) const override { OB += "typename "; }
+D:/GitHub/CPP-ISO-proposals/auto-return-override/lab/repos/llvm-project/llvm\lib\ExecutionEngine\JITLink\ELF_aarch32.cpp:203:  TargetFlagsType makeTargetFlags(const typename ELFT::Sym &Sym) override {
+D:/GitHub/CPP-ISO-proposals/auto-return-override/lab/repos/llvm-project/llvm\include\llvm\Demangle\ItaniumDemangle.h:1306:  void printLeft(OutputBuffer &OB) const override { OB += "typename "; }
+D:/GitHub/CPP-ISO-proposals/auto-return-override/lab/repos/llvm-project/lldb\unittests\TestingSupport\Host\JSONTransportTestUtilities.h:42:  llvm::Error Send(const typename Proto::Evt &evt) override {
+D:/GitHub/CPP-ISO-proposals/auto-return-override/lab/repos/llvm-project/lldb\unittests\TestingSupport\Host\JSONTransportTestUtilities.h:50:  llvm::Error Send(const typename Proto::Req &req) override {
+D:/GitHub/CPP-ISO-proposals/auto-return-override/lab/repos/llvm-project/lldb\unittests\TestingSupport\Host\JSONTransportTestUtilities.h:58:  llvm::Error Send(const typename Proto::Resp &resp) override {
+D:/GitHub/CPP-ISO-proposals/auto-return-override/lab/repos/llvm-project/lldb\include\lldb\Utility\Cloneable.h:44:  std::shared_ptr<typename Base::TopmostBase> Clone() const override {
+D:/GitHub/CPP-ISO-proposals/auto-return-override/lab/repos/llvm-project/lldb\include\lldb\Host\JSONTransport.h:187:  llvm::Error Send(const typename Proto::Evt &evt) override {
+D:/GitHub/CPP-ISO-proposals/auto-return-override/lab/repos/llvm-project/lldb\include\lldb\Host\JSONTransport.h:191:  llvm::Error Send(const typename Proto::Req &req) override {
+D:/GitHub/CPP-ISO-proposals/auto-return-override/lab/repos/llvm-project/lldb\include\lldb\Host\JSONTransport.h:195:  llvm::Error Send(const typename Proto::Resp &resp) override {

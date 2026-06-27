@@ -1,0 +1,33 @@
+// clang-query matchers for the `auto … override` use-case study.   (Clang/LLVM 22.x)
+// Run via scripts/scan_clang_query.sh, which supplies -p <compile_commands dir> and
+// dedups the bound declarations across translation units by source location.
+//
+//   o  binding  = DENOMINATOR: every overriding method.
+//   v  binding  = NUMERATOR  : overriding methods whose RETURN type, as written, is a
+//                 class-template specialization (by value / reference / pointer), a
+//                 decltype type, or a dependent name — i.e. exactly the verbose /
+//                 fragile-to-restate cases the proposal removes. (Covariant returns are
+//                 out of scope by design, so matching the identical verbose return type
+//                 is the right signal; std::string and other typedef sugar are correctly
+//                 NOT template-specialization nodes and are excluded.)
+//
+// NOTE (Clang 22): the `elaboratedType`/`dependentTemplateSpecializationType` matchers
+// were removed/renamed, and `qualType(anyOf(<type-matchers>...))` silently fails to bind
+// when mixing Type and QualType matchers. We therefore emit ONE match per return-shape,
+// all binding "v"; the driver unions and dedups them.
+
+// IMPORTANT (clang-query quirk): a `let NAME = ...` followed by `match NAME` does NOT
+// emit the inner `.bind()` results — only DIRECT `match <expr>.bind(...)` does. So every
+// query below is a direct match.
+
+set output dump
+
+// ---- denominator: all overrides ----
+match cxxMethodDecl(isOverride()).bind("o")
+
+// ---- numerator: verbose / dependent return types (each match binds "v") ----
+match cxxMethodDecl(isOverride(), returns(templateSpecializationType())).bind("v")
+match cxxMethodDecl(isOverride(), returns(references(templateSpecializationType()))).bind("v")
+match cxxMethodDecl(isOverride(), returns(pointsTo(templateSpecializationType()))).bind("v")
+match cxxMethodDecl(isOverride(), returns(decltypeType())).bind("v")
+match cxxMethodDecl(isOverride(), returns(dependentNameType())).bind("v")

@@ -1,0 +1,5 @@
+d:/github/cpp-iso-proposals/auto-return-override/lab/repos/catch2/src/catch2/catch_config.hpp:113	
+d:/github/cpp-iso-proposals/auto-return-override/lab/repos/catch2/src/catch2/catch_config.hpp:114	
+d:/github/cpp-iso-proposals/auto-return-override/lab/repos/catch2/src/catch2/internal/catch_test_case_registry_impl.hpp:35	
+d:/github/cpp-iso-proposals/auto-return-override/lab/repos/catch2/src/catch2/internal/catch_test_case_registry_impl.hpp:36	
+d:/github/cpp-iso-proposals/auto-return-override/lab/repos/catch2/src/catch2/internal/catch_test_case_registry_impl.hpp:37	

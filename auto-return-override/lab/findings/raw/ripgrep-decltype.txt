@@ -1,0 +1,2 @@
+D:/GitHub/CPP-ISO-proposals/auto-return-override/lab/repos/llvm-project/clang\unittests\Format\AlignmentTest.cpp:2626:      "                        decltype(AFunc) *response) noexcept override;\n"
+D:/GitHub/CPP-ISO-proposals/auto-return-override/lab/repos/llvm-project/llvm\unittests\DebugInfo\PDB\PDBApiTest.cpp:61:  decltype(std::declval<IPDBRawSymbol>().Func()) Func() const override {       \

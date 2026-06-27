@@ -1,0 +1,390 @@
+From 1a59ee55dbd0d8d95f2b321a26ef478caf27538c Mon Sep 17 00:00:00 2001
+From: Alex Tsvetanov <alex.tsvetanov0+github@gmail.com>
+Date: Sat, 27 Jun 2026 04:03:44 +0300
+Subject: [PATCH 1/2] [clang] Deduced return type for overriding functions via
+ `auto`
+
+Implements the C++ proposal "Deduced return type for overriding functions via
+`auto`": a virtual function declared with the bare `auto` placeholder together
+with the `override` specifier takes its return type from the function it
+overrides, fixed at the declaration. Each `return` statement must already yield
+exactly that type (no implicit conversion). `auto` and the written-out type may
+be mixed across the in-class declaration and an out-of-line definition; a
+disagreeing written-out type is ill-formed. `decltype(auto)`/constrained
+placeholders and the no-`override` case remain ill-formed ("cannot be virtual").
+
+- SemaDeclCXX: defer the covariant-return diagnostic for an undeduced `auto`
+  override; ActOnDeducedAutoOverrideReturnType fixes the return type to the
+  overridden function's (or diagnoses the unsupported placeholder forms and
+  multiple bases that disagree).
+- SemaDecl/MergeFunctionDecl: reconcile `auto` and the written-out overridden
+  type across redeclarations; diagnose a disagreeing written-out type.
+- SemaStmt/BuildReturnStmt: require each return operand to already have the
+  overridden type, with no implicit conversion.
+- New diagnostics err_auto_override_return_mismatch /
+  err_auto_override_ambiguous_return; feature-test macro
+  __cpp_deduced_virtual_override_return; gated on -std=c++2c.
+---
+ .../clang/Basic/DiagnosticSemaKinds.td        |  6 ++
+ clang/include/clang/Sema/Sema.h               | 13 ++++
+ clang/lib/Frontend/InitPreprocessor.cpp       |  4 +
+ clang/lib/Sema/SemaDecl.cpp                   | 39 +++++++++-
+ clang/lib/Sema/SemaDeclCXX.cpp                | 74 +++++++++++++++++++
+ clang/lib/Sema/SemaStmt.cpp                   | 21 ++++++
+ 6 files changed, 156 insertions(+), 1 deletion(-)
+
+diff --git a/clang/include/clang/Basic/DiagnosticSemaKinds.td b/clang/include/clang/Basic/DiagnosticSemaKinds.td
+index 7e2063070..7336953fb 100644
+--- a/clang/include/clang/Basic/DiagnosticSemaKinds.td
++++ b/clang/include/clang/Basic/DiagnosticSemaKinds.td
+@@ -2853,6 +2853,12 @@ def err_auto_fn_return_init_list : Error<
+   "cannot deduce return type from initializer list">;
+ def err_auto_fn_virtual : Error<
+   "function with deduced return type cannot be virtual">;
++// P????: deduced return type for overriding functions via 'auto'.
++def err_auto_override_return_mismatch : Error<
++  "returned type %0 does not match the return type %1 of the overridden function">;
++def err_auto_override_ambiguous_return : Error<
++  "%0 overrides functions with different return types %1 and %2, so the deduced "
++  "'auto' return type does not match a unique type">;
+ def warn_cxx11_compat_deduced_return_type : Warning<
+   "return type deduction is incompatible with C++ standards before C++14">,
+   InGroup<CXXPre14Compat>, DefaultIgnore;
+diff --git a/clang/include/clang/Sema/Sema.h b/clang/include/clang/Sema/Sema.h
+index b8d760e7e..359268ae2 100644
+--- a/clang/include/clang/Sema/Sema.h
++++ b/clang/include/clang/Sema/Sema.h
+@@ -6282,6 +6282,19 @@ public:
+   bool CheckOverridingFunctionReturnType(const CXXMethodDecl *New,
+                                          const CXXMethodDecl *Old);
+ 
++  /// Functions written `auto ... override` whose return type was taken from the
++  /// overridden function (P????). Each such function's `return` statements must
++  /// already yield exactly that type (checked in BuildReturnStmt), with no
++  /// implicit conversion. Keyed by canonical declaration.
++  llvm::SmallPtrSet<const FunctionDecl *, 8> DeducedVirtualOverrideReturns;
++
++  /// If \p MD is declared with the bare `auto` placeholder and `override`, fix its
++  /// return type to that of the function it overrides (P????). Diagnoses the
++  /// non-feature placeholder/override combinations ("cannot be virtual") and
++  /// disagreeing multiple bases. Called once the override relationship and the
++  /// `override` virt-specifier are both known.
++  void ActOnDeducedAutoOverrideReturnType(CXXMethodDecl *MD);
++
+   // Check that the overriding method has no explicit object parameter.
+   bool CheckExplicitObjectOverride(CXXMethodDecl *New,
+                                    const CXXMethodDecl *Old);
+diff --git a/clang/lib/Frontend/InitPreprocessor.cpp b/clang/lib/Frontend/InitPreprocessor.cpp
+index ec009211e..255080b8b 100644
+--- a/clang/lib/Frontend/InitPreprocessor.cpp
++++ b/clang/lib/Frontend/InitPreprocessor.cpp
+@@ -756,6 +756,10 @@ static void InitializeCPlusPlusFeatureTestMacros(const LangOptions &LangOpts,
+   Builder.defineMacro("__cpp_variadic_friend", "202403L");
+   Builder.defineMacro("__cpp_trivial_relocatability", "202502L");
+ 
++  // P????: deduced return type for overriding functions via `auto` (C++26-only).
++  if (LangOpts.CPlusPlus26)
++    Builder.defineMacro("__cpp_deduced_virtual_override_return", "202606L");
++
+   if (LangOpts.Char8)
+     Builder.defineMacro("__cpp_char8_t", "202207L");
+   Builder.defineMacro("__cpp_impl_destroying_delete", "201806L");
+diff --git a/clang/lib/Sema/SemaDecl.cpp b/clang/lib/Sema/SemaDecl.cpp
+index d45c3eb35..2193bd826 100644
+--- a/clang/lib/Sema/SemaDecl.cpp
++++ b/clang/lib/Sema/SemaDecl.cpp
+@@ -4078,6 +4078,42 @@ bool Sema::MergeFunctionDecl(FunctionDecl *New, NamedDecl *&OldD, Scope *S,
+     OldQType = Context.getCanonicalType(Old->getType());
+     NewQType = Context.getCanonicalType(New->getType());
+ 
++    // P????: an overriding function may mix the bare `auto` placeholder and the
++    // written-out (overridden) return type across its declarations; the placeholder
++    // denotes the type fixed by the overridden function. Reconcile the two spellings
++    // here rather than rejecting per [dcl.spec.auto] (relaxed for overriders), and
++    // diagnose only a written-out type that actually disagrees.
++    bool AutoOverrideReconciled = false;
++    if (getLangOpts().CPlusPlus26) {
++      const auto *OldM = dyn_cast<CXXMethodDecl>(Old);
++      if (OldM && OldM->size_overridden_methods() != 0) {
++        QualType T = Old->getReturnType(); // the type fixed by the override
++        QualType NewDeclRet = New->getDeclaredReturnType();
++        if (!T->isUndeducedType() && !T->isDependentType()) {
++          if (NewDeclRet->isUndeducedAutoType()) {
++            // This declaration spells `auto`: it denotes the overridden type T.
++            if (const auto *NewFPT = New->getType()->getAs<FunctionProtoType>()) {
++              New->setType(Context.getFunctionType(
++                  T, NewFPT->getParamTypes(), NewFPT->getExtProtoInfo()));
++              NewQType = Context.getCanonicalType(New->getType());
++              DeducedVirtualOverrideReturns.insert(New);
++              DeducedVirtualOverrideReturns.insert(New->getCanonicalDecl());
++              AutoOverrideReconciled = true;
++            }
++          } else if (!Context.hasSameType(NewDeclRet, T)) {
++            // A written-out return type that disagrees with the overridden type.
++            Diag(New->getLocation(), diag::err_auto_override_return_mismatch)
++                << NewDeclRet << T;
++            Diag(OldLocation, PrevDiag) << Old << Old->getType()
++                                        << Old->getReturnTypeSourceRange();
++            return true;
++          } else {
++            AutoOverrideReconciled = true; // written-out type equals T: accepted.
++          }
++        }
++      }
++    }
++
+     // Go back to the type source info to compare the declared return types,
+     // per C++1y [dcl.type.auto]p13:
+     //   Redeclarations or specializations of a function or function template
+@@ -4085,7 +4121,8 @@ bool Sema::MergeFunctionDecl(FunctionDecl *New, NamedDecl *&OldD, Scope *S,
+     //   use that placeholder, not a deduced type.
+     QualType OldDeclaredReturnType = Old->getDeclaredReturnType();
+     QualType NewDeclaredReturnType = New->getDeclaredReturnType();
+-    if (!Context.hasSameType(OldDeclaredReturnType, NewDeclaredReturnType) &&
++    if (!AutoOverrideReconciled &&
++        !Context.hasSameType(OldDeclaredReturnType, NewDeclaredReturnType) &&
+         canFullyTypeCheckRedeclaration(New, Old, NewDeclaredReturnType,
+                                        OldDeclaredReturnType)) {
+       QualType ResQT;
+diff --git a/clang/lib/Sema/SemaDeclCXX.cpp b/clang/lib/Sema/SemaDeclCXX.cpp
+index ffce0a146..62e54c51b 100644
+--- a/clang/lib/Sema/SemaDeclCXX.cpp
++++ b/clang/lib/Sema/SemaDeclCXX.cpp
+@@ -3265,6 +3265,66 @@ bool Sema::ActOnAccessSpecifier(AccessSpecifier Access, SourceLocation ASLoc,
+   return ProcessAccessDeclAttributeList(ASDecl, Attrs);
+ }
+ 
++void Sema::ActOnDeducedAutoOverrideReturnType(CXXMethodDecl *MD) {
++  // Feature is C++26-only; older standards keep today's behaviour (the bare
++  // `auto`/`override` combination is diagnosed by CheckOverridingFunctionReturnType).
++  if (!getLangOpts().CPlusPlus26 || !MD || MD->isInvalidDecl())
++    return;
++  const auto *FPT = MD->getType()->getAs<FunctionProtoType>();
++  if (!FPT)
++    return;
++  const AutoType *AT = FPT->getReturnType()->getAs<AutoType>();
++  if (!AT || !AT->isUndeducedAutoType())
++    return; // not a placeholder return type
++
++  // Only an overriding function adopts a return type from a base.
++  if (MD->size_overridden_methods() == 0)
++    return; // ordinary (non-virtual) deduced-return function: leave untouched
++
++  bool IsBareAuto =
++      AT->getKeyword() == AutoTypeKeyword::Auto && !AT->isConstrained();
++
++  // The feature is triggered only by the bare `auto` placeholder written with the
++  // `override` virt-specifier (which is already on MD at this point).
++  if (IsBareAuto && MD->hasAttr<OverrideAttr>()) {
++    QualType T, Other;
++    for (const CXXMethodDecl *Base : MD->overridden_methods()) {
++      QualType BT = Base->getReturnType();
++      if (T.isNull())
++        T = BT;
++      else if (!Context.hasSameType(T, BT)) {
++        Other = BT;
++        break;
++      }
++    }
++    if (!Other.isNull()) {
++      // Multiple inheritance: the overridden functions disagree on the return
++      // type, so there is no single type to adopt.
++      Diag(MD->getLocation(), diag::err_auto_override_ambiguous_return)
++          << MD->getDeclName() << T << Other;
++      MD->setInvalidDecl();
++      return;
++    }
++    if (T.isNull() || T->isUndeducedType() || T->isDependentType())
++      return; // overridden type not yet known (e.g. dependent base): leave to deduction
++
++    // Fix the return type to the overridden function's, exactly as if written out.
++    // Override checking and vtable layout then proceed as for any ordinary member.
++    MD->setType(
++        Context.getFunctionType(T, FPT->getParamTypes(), FPT->getExtProtoInfo()));
++    // Remember it so each `return` statement is checked against T with no implicit
++    // conversion (BuildReturnStmt).
++    DeducedVirtualOverrideReturns.insert(MD->getCanonicalDecl());
++    return;
++  }
++
++  // A virtual (overriding) function whose placeholder return type the feature does
++  // not cover: bare `auto` without `override`, or `decltype(auto)` / a constrained
++  // placeholder. The existing prohibition on a virtual deduced return type stands.
++  Diag(MD->getLocation(), diag::err_auto_fn_virtual);
++  MD->setInvalidDecl();
++}
++
+ void Sema::CheckOverrideControl(NamedDecl *D) {
+   if (D->isInvalidDecl())
+     return;
+@@ -3742,6 +3802,13 @@ Sema::ActOnCXXMemberDeclarator(Scope *S, AccessSpecifier AS, Declarator &D,
+                                           ? FinalAttr::Keyword_sealed
+                                           : FinalAttr::Keyword_final));
+ 
++  // P????: a function declared with the bare `auto` placeholder and `override`
++  // takes its return type from the function it overrides. Both the override
++  // relationship (already resolved by AddOverriddenMethods while the member was
++  // built) and the `override` virt-specifier (applied just above) are known here.
++  if (auto *MD = dyn_cast_or_null<CXXMethodDecl>(Member))
++    ActOnDeducedAutoOverrideReturnType(MD);
++
+   if (VS.getLastLocation().isValid()) {
+     // Update the end location of a method that has a virt-specifiers.
+     if (CXXMethodDecl *MD = dyn_cast_or_null<CXXMethodDecl>(Member))
+@@ -18938,6 +19005,13 @@ bool Sema::CheckOverridingFunctionReturnType(const CXXMethodDecl *New,
+   QualType NewTy = New->getType()->castAs<FunctionType>()->getReturnType();
+   QualType OldTy = Old->getType()->castAs<FunctionType>()->getReturnType();
+ 
++  // P????: if the overriding function's declared return type is still the bare
++  // `auto` placeholder, do not diagnose a "different return type" here: the type
++  // is fixed to the overridden function's in ActOnDeducedAutoOverrideReturnType,
++  // which runs once the `override` virt-specifier is known.
++  if (getLangOpts().CPlusPlus26 && NewTy->isUndeducedAutoType())
++    return false;
++
+   if (Context.hasSameType(NewTy, OldTy) ||
+       NewTy->isDependentType() || OldTy->isDependentType())
+     return false;
+diff --git a/clang/lib/Sema/SemaStmt.cpp b/clang/lib/Sema/SemaStmt.cpp
+index 27fee88d2..4bd119ea1 100644
+--- a/clang/lib/Sema/SemaStmt.cpp
++++ b/clang/lib/Sema/SemaStmt.cpp
+@@ -4042,6 +4042,27 @@ StmtResult Sema::BuildReturnStmt(SourceLocation ReturnLoc, Expr *RetValExp,
+     }
+   }
+ 
++  // P????: in a function whose return type was deduced from the function it
++  // overrides (`auto ... override`), each `return` operand must already yield
++  // exactly that type; the abbreviation never performs an implicit conversion.
++  if (RetValExp && getLangOpts().CPlusPlus26) {
++    const FunctionDecl *CurFD = getCurFunctionDecl();
++    if (CurFD &&
++        DeducedVirtualOverrideReturns.count(CurFD->getCanonicalDecl())) {
++      QualType Deduced;
++      TypeSourceInfo *AutoTSI = Context.getTrivialTypeSourceInfo(
++          Context.getAutoDeductType(), RetValExp->getExprLoc());
++      TemplateDeductionInfo Info(RetValExp->getExprLoc());
++      if (DeduceAutoType(AutoTSI->getTypeLoc(), RetValExp, Deduced, Info) ==
++              TemplateDeductionResult::Success &&
++          !Context.hasSameType(Deduced, FnRetType)) {
++        Diag(RetValExp->getExprLoc(), diag::err_auto_override_return_mismatch)
++            << Deduced << FnRetType;
++        return StmtError();
++      }
++    }
++  }
++
+   // C++1z: discarded return statements are not considered when deducing a
+   // return type.
+   if (ExprEvalContexts.back().isDiscardedStatementContext() &&
+-- 
+2.54.0.windows.1
+
+
+From 6f177d8070b49d7bca997dbe778ecb9dcade9d04 Mon Sep 17 00:00:00 2001
+From: Alex Tsvetanov <alex.tsvetanov0+github@gmail.com>
+Date: Sat, 27 Jun 2026 04:05:48 +0300
+Subject: [PATCH 2/2] [clang][test] Add SemaCXX tests for deduced auto override
+ return type
+
+-verify coverage for the well-formed forms (in-class, all four out-of-line
+combinations, dependent/verbose base type, qualifiers) and the ill-formed ones
+(return operand mismatch, missing override, decltype(auto), multiple disagreeing
+bases, disagreeing out-of-line written-out type), plus the feature-test macro.
+---
+ .../deduced-virtual-override-return.cpp       | 83 +++++++++++++++++++
+ 1 file changed, 83 insertions(+)
+ create mode 100644 clang/test/SemaCXX/deduced-virtual-override-return.cpp
+
+diff --git a/clang/test/SemaCXX/deduced-virtual-override-return.cpp b/clang/test/SemaCXX/deduced-virtual-override-return.cpp
+new file mode 100644
+index 000000000..942516748
+--- /dev/null
++++ b/clang/test/SemaCXX/deduced-virtual-override-return.cpp
+@@ -0,0 +1,83 @@
++// RUN: %clang_cc1 -std=c++2c -fsyntax-only -verify %s
++// RUN: %clang_cc1 -std=c++2c -fsyntax-only -verify -DMACRO %s
++
++// Tests for "Deduced return type for overriding functions via `auto`": a virtual
++// function declared with the bare `auto` placeholder and `override` adopts the
++// overridden function's return type, fixed at the declaration.
++
++#ifdef MACRO
++#if __cpp_deduced_virtual_override_return != 202606L
++#error feature-test macro has the wrong value
++#endif
++// expected-no-diagnostics
++#else
++
++// --- basic: return type is the overridden type (int) ---
++struct A { virtual int test() { return 5; } };
++struct B : A {
++  auto test() override { return 6; }   // ok: int
++};
++
++// --- the return type is fixed even with no in-class body ---
++struct Abase { virtual int f() = 0; };
++struct Decl : Abase { auto f() override; };   // ok: int
++int g_decl() { Decl *d = nullptr; return d->f(); }
++
++// --- out-of-line: all four combinations of auto / written-out ---
++struct OO1 : Abase { auto f() override; };
++auto OO1::f() { return 3; }            // ok: auto definition deduces int
++
++struct OO2 : Abase { auto f() override; };
++int  OO2::f() { return 3; }            // ok: int matches the overridden type
++
++struct OO3 : Abase { int  f() override; };
++auto OO3::f() { return 3; }            // ok: auto denotes the overridden int
++
++// --- dependent / verbose base return type, restated for free ---
++template <class T> struct Holder {};
++struct VBase { virtual Holder<int> snapshot() = 0; };
++struct VDer : VBase {
++  auto snapshot() override { return Holder<int>{}; }   // ok
++};
++
++// --- qualifiers are orthogonal ---
++struct Q { virtual int f() const { return 1; } virtual int g() noexcept { return 2; } };
++struct QD : Q {
++  auto f() const override { return 10; }     // ok
++  auto g() noexcept override { return 20; }  // ok
++};
++
++// --- return operand must already have the overridden type (no conversion) ---
++struct Pbool { virtual bool f() = 0; };
++struct Pder : Pbool {
++  auto f() override { return "pumpkin"; }  // expected-error {{does not match}}
++};
++
++struct Plong { virtual long f() = 0; virtual long h() = 0; };
++struct Plder : Plong {
++  auto f() override { return 0; }          // expected-error {{does not match}}
++  auto h() override { return 0L; }         // ok: 0L already has type long
++};
++
++// --- `override` is required (a virtual `auto` without it stays ill-formed) ---
++struct NoKw : Abase {
++  auto f() { return 3; }   // expected-error {{cannot be virtual}}
++};
++
++// --- multiple inheritance with disagreeing return types ---
++struct MA { virtual int  f() { return 1; } };
++struct MC { virtual long f() { return 2; } };
++struct MD : MA, MC {
++  auto f() override { return 0; }   // expected-error {{does not match a unique type}}
++};
++
++// --- out-of-line written-out definition that disagrees ---
++struct N5 : Abase { auto f() override; };  // expected-note {{previous declaration is here}}
++long N5::f() { return 3; }           // expected-error {{does not match}}
++
++// --- decltype(auto) is out of scope ---
++struct D6 : Abase {
++  decltype(auto) f() override { return 3; }   // expected-error {{cannot be virtual}}
++};
++
++#endif
+-- 
+2.54.0.windows.1
+

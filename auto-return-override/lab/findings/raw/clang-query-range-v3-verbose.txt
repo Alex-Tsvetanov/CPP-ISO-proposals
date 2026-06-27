@@ -1,0 +1,3 @@
+d:/github/cpp-iso-proposals/auto-return-override/lab/repos/range-v3/include/range/v3/view/any_view.hpp:365	
+d:/github/cpp-iso-proposals/auto-return-override/lab/repos/range-v3/include/range/v3/view/any_view.hpp:525	any_cursor<Ref, Cat>
+d:/github/cpp-iso-proposals/auto-return-override/lab/repos/range-v3/include/range/v3/view/any_view.hpp:534	

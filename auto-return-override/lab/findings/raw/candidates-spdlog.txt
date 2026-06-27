@@ -1,0 +1,9 @@
+D:/GitHub/CPP-ISO-proposals/auto-return-override/lab/repos/spdlog/example\example.cpp:334:    std::unique_ptr<custom_flag_formatter> clone() const override {
+D:/GitHub/CPP-ISO-proposals/auto-return-override/lab/repos/spdlog/include\spdlog\async_logger.h:58:    std::shared_ptr<logger> clone(std::string new_name) override;
+D:/GitHub/CPP-ISO-proposals/auto-return-override/lab/repos/spdlog/include\spdlog\pattern_formatter.h:81:    std::unique_ptr<formatter> clone() const override;
+D:/GitHub/CPP-ISO-proposals/auto-return-override/lab/repos/spdlog/include\spdlog\sinks\ansicolor_sink.h:44:    void set_formatter(std::unique_ptr<formatter> sink_formatter) override;
+D:/GitHub/CPP-ISO-proposals/auto-return-override/lab/repos/spdlog/include\spdlog\sinks\base_sink.h:34:    void set_formatter(std::unique_ptr<formatter> sink_formatter) final override;
+D:/GitHub/CPP-ISO-proposals/auto-return-override/lab/repos/spdlog/include\spdlog\sinks\dist_sink.h:68:    void set_formatter_(std::unique_ptr<formatter> sink_formatter) override {
+D:/GitHub/CPP-ISO-proposals/auto-return-override/lab/repos/spdlog/include\spdlog\sinks\stdout_sinks.h:36:    void set_formatter(std::unique_ptr<formatter> sink_formatter) override;
+D:/GitHub/CPP-ISO-proposals/auto-return-override/lab/repos/spdlog/include\spdlog\sinks\wincolor_sink.h:37:    void set_formatter(std::unique_ptr<formatter> sink_formatter) override;
+D:/GitHub/CPP-ISO-proposals/auto-return-override/lab/repos/spdlog/tests\test_pattern_formatter.cpp:390:    std::unique_ptr<custom_flag_formatter> clone() const override {

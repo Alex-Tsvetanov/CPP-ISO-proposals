@@ -1,0 +1,4 @@
+d:/github/cpp-iso-proposals/auto-return-override/lab/repos/spdlog/example/example.cpp:334	
+d:/github/cpp-iso-proposals/auto-return-override/lab/repos/spdlog/include/spdlog/async_logger.h:58	std::shared_ptr<logger>
+d:/github/cpp-iso-proposals/auto-return-override/lab/repos/spdlog/include/spdlog/pattern_formatter.h:81	
+d:/github/cpp-iso-proposals/auto-return-override/lab/repos/spdlog/tests/test_pattern_formatter.cpp:390	

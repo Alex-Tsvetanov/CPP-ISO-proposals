@@ -1,0 +1,32 @@
+# Public C++ repositories to clone and scan for production use-cases of
+# "deduced return type for overriding functions via auto".
+#
+# Format: one entry per line  ->  <git-url> [optional-shallow-branch]
+# Lines starting with # are comments. clone_repos.sh reads this file.
+#
+# Selection rationale: the feature pays off where a base class declares a VERBOSE or
+# DEPENDENT (template / decltype / long STL) return type that every override must
+# restate verbatim (the feature does NOT synthesize covariance, so the interesting
+# cases are identical, non-covariant return types). Interface-heavy, visitor/AST,
+# expression-template, and plugin-style hierarchies are the richest hunting grounds.
+#
+# Keep this list curated; add repos that actually exhibit the pattern. Prefer projects
+# with CMake so a compile_commands.json can be generated for the precise clang-query pass.
+
+# --- Compiler / AST / IR hierarchies (many virtual overrides) ---
+https://github.com/llvm/llvm-project.git
+https://github.com/root-project/root.git
+
+# --- Interface-heavy application frameworks ---
+https://github.com/pocoproject/poco.git
+https://github.com/godotengine/godot.git
+
+# --- Template / expression-template / generic libraries ---
+https://github.com/boostorg/boost.git
+https://github.com/ericniebler/range-v3.git
+https://github.com/nlohmann/json.git
+https://github.com/fmtlib/fmt.git
+
+# --- Smaller, fast to clone (good for first runs / CI smoke tests) ---
+https://github.com/catchorg/Catch2.git
+https://github.com/gabime/spdlog.git

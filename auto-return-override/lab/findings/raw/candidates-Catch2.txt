@@ -1,0 +1,62 @@
+D:/GitHub/CPP-ISO-proposals/auto-return-override/lab/repos/Catch2/extras\catch_amalgamated.hpp:11267:        std::vector<TestCaseInfo*> const& getAllInfos() const override;
+D:/GitHub/CPP-ISO-proposals/auto-return-override/lab/repos/Catch2/extras\catch_amalgamated.hpp:11268:        std::vector<TestCaseHandle> const& getAllTests() const override;
+D:/GitHub/CPP-ISO-proposals/auto-return-override/lab/repos/Catch2/extras\catch_amalgamated.hpp:11269:        std::vector<TestCaseHandle> const& getAllTestsSorted( IConfig const& config ) const override;
+D:/GitHub/CPP-ISO-proposals/auto-return-override/lab/repos/Catch2/extras\catch_amalgamated.hpp:13363:        bool match(std::vector<T, Alloc> const& v) const override {
+D:/GitHub/CPP-ISO-proposals/auto-return-override/lab/repos/Catch2/extras\catch_amalgamated.hpp:13386:        bool match(std::vector<T, AllocMatch> const& v) const override {
+D:/GitHub/CPP-ISO-proposals/auto-return-override/lab/repos/Catch2/extras\catch_amalgamated.hpp:13418:        bool match(std::vector<T, AllocMatch> const& v) const override {
+D:/GitHub/CPP-ISO-proposals/auto-return-override/lab/repos/Catch2/extras\catch_amalgamated.hpp:13444:        bool match(std::vector<T, AllocMatch> const& v) const override {
+D:/GitHub/CPP-ISO-proposals/auto-return-override/lab/repos/Catch2/extras\catch_amalgamated.hpp:13480:        bool match(std::vector<T, AllocMatch> const& vec) const override {
+D:/GitHub/CPP-ISO-proposals/auto-return-override/lab/repos/Catch2/extras\catch_amalgamated.hpp:13605:            std::vector<ReporterDescription> const& descriptions ) override;
+D:/GitHub/CPP-ISO-proposals/auto-return-override/lab/repos/Catch2/extras\catch_amalgamated.hpp:13613:            std::vector<ListenerDescription> const& descriptions ) override;
+D:/GitHub/CPP-ISO-proposals/auto-return-override/lab/repos/Catch2/extras\catch_amalgamated.hpp:13621:        void listTests( std::vector<TestCaseHandle> const& tests ) override;
+D:/GitHub/CPP-ISO-proposals/auto-return-override/lab/repos/Catch2/extras\catch_amalgamated.hpp:13628:        void listTags( std::vector<TagInfo> const& tags ) override;
+D:/GitHub/CPP-ISO-proposals/auto-return-override/lab/repos/Catch2/extras\catch_amalgamated.hpp:13989:            std::vector<ReporterDescription> const& descriptions ) override;
+D:/GitHub/CPP-ISO-proposals/auto-return-override/lab/repos/Catch2/extras\catch_amalgamated.hpp:13991:            std::vector<ListenerDescription> const& descriptions ) override;
+D:/GitHub/CPP-ISO-proposals/auto-return-override/lab/repos/Catch2/extras\catch_amalgamated.hpp:13992:        void listTests( std::vector<TestCaseHandle> const& tests ) override;
+D:/GitHub/CPP-ISO-proposals/auto-return-override/lab/repos/Catch2/extras\catch_amalgamated.hpp:13993:        void listTags( std::vector<TagInfo> const& tagInfos ) override;
+D:/GitHub/CPP-ISO-proposals/auto-return-override/lab/repos/Catch2/extras\catch_amalgamated.hpp:14146:            std::vector<ReporterDescription> const& descriptions ) override;
+D:/GitHub/CPP-ISO-proposals/auto-return-override/lab/repos/Catch2/extras\catch_amalgamated.hpp:14148:            std::vector<ListenerDescription> const& descriptions ) override;
+D:/GitHub/CPP-ISO-proposals/auto-return-override/lab/repos/Catch2/extras\catch_amalgamated.hpp:14149:        void listTests( std::vector<TestCaseHandle> const& tests ) override;
+D:/GitHub/CPP-ISO-proposals/auto-return-override/lab/repos/Catch2/extras\catch_amalgamated.hpp:14150:        void listTags( std::vector<TagInfo> const& tags ) override;
+D:/GitHub/CPP-ISO-proposals/auto-return-override/lab/repos/Catch2/extras\catch_amalgamated.hpp:14297:        void listReporters(std::vector<ReporterDescription> const& descriptions) override;
+D:/GitHub/CPP-ISO-proposals/auto-return-override/lab/repos/Catch2/extras\catch_amalgamated.hpp:14298:        void listListeners(std::vector<ListenerDescription> const& descriptions) override;
+D:/GitHub/CPP-ISO-proposals/auto-return-override/lab/repos/Catch2/extras\catch_amalgamated.hpp:14299:        void listTests(std::vector<TestCaseHandle> const& tests) override;
+D:/GitHub/CPP-ISO-proposals/auto-return-override/lab/repos/Catch2/extras\catch_amalgamated.hpp:14300:        void listTags(std::vector<TagInfo> const& tags) override;
+D:/GitHub/CPP-ISO-proposals/auto-return-override/lab/repos/Catch2/extras\catch_amalgamated.hpp:14620:        void listReporters(std::vector<ReporterDescription> const& descriptions) override;
+D:/GitHub/CPP-ISO-proposals/auto-return-override/lab/repos/Catch2/extras\catch_amalgamated.hpp:14621:        void listListeners(std::vector<ListenerDescription> const& descriptions) override;
+D:/GitHub/CPP-ISO-proposals/auto-return-override/lab/repos/Catch2/extras\catch_amalgamated.hpp:14622:        void listTests(std::vector<TestCaseHandle> const& tests) override;
+D:/GitHub/CPP-ISO-proposals/auto-return-override/lab/repos/Catch2/extras\catch_amalgamated.hpp:14623:        void listTags(std::vector<TagInfo> const& tags) override;
+D:/GitHub/CPP-ISO-proposals/auto-return-override/lab/repos/Catch2/extras\catch_amalgamated.hpp:3891:        std::vector<std::string> const& getTestsOrTags() const override;
+D:/GitHub/CPP-ISO-proposals/auto-return-override/lab/repos/Catch2/extras\catch_amalgamated.hpp:3892:        std::vector<PathFilter> const& getPathFilters() const override;
+D:/GitHub/CPP-ISO-proposals/auto-return-override/lab/repos/Catch2/extras\catch_amalgamated.hpp:8224:        std::vector<T> const& get() const override {
+D:/GitHub/CPP-ISO-proposals/auto-return-override/lab/repos/Catch2/src\catch2\catch_config.hpp:113:        std::vector<std::string> const& getTestsOrTags() const override;
+D:/GitHub/CPP-ISO-proposals/auto-return-override/lab/repos/Catch2/src\catch2\catch_config.hpp:114:        std::vector<PathFilter> const& getPathFilters() const override;
+D:/GitHub/CPP-ISO-proposals/auto-return-override/lab/repos/Catch2/src\catch2\generators\catch_generators_adapters.hpp:241:        std::vector<T> const& get() const override {
+D:/GitHub/CPP-ISO-proposals/auto-return-override/lab/repos/Catch2/src\catch2\internal\catch_test_case_registry_impl.hpp:35:        std::vector<TestCaseInfo*> const& getAllInfos() const override;
+D:/GitHub/CPP-ISO-proposals/auto-return-override/lab/repos/Catch2/src\catch2\internal\catch_test_case_registry_impl.hpp:36:        std::vector<TestCaseHandle> const& getAllTests() const override;
+D:/GitHub/CPP-ISO-proposals/auto-return-override/lab/repos/Catch2/src\catch2\internal\catch_test_case_registry_impl.hpp:37:        std::vector<TestCaseHandle> const& getAllTestsSorted( IConfig const& config ) const override;
+D:/GitHub/CPP-ISO-proposals/auto-return-override/lab/repos/Catch2/src\catch2\matchers\catch_matchers_vector.hpp:109:        bool match(std::vector<T, AllocMatch> const& v) const override {
+D:/GitHub/CPP-ISO-proposals/auto-return-override/lab/repos/Catch2/src\catch2\matchers\catch_matchers_vector.hpp:145:        bool match(std::vector<T, AllocMatch> const& vec) const override {
+D:/GitHub/CPP-ISO-proposals/auto-return-override/lab/repos/Catch2/src\catch2\matchers\catch_matchers_vector.hpp:28:        bool match(std::vector<T, Alloc> const& v) const override {
+D:/GitHub/CPP-ISO-proposals/auto-return-override/lab/repos/Catch2/src\catch2\matchers\catch_matchers_vector.hpp:51:        bool match(std::vector<T, AllocMatch> const& v) const override {
+D:/GitHub/CPP-ISO-proposals/auto-return-override/lab/repos/Catch2/src\catch2\matchers\catch_matchers_vector.hpp:83:        bool match(std::vector<T, AllocMatch> const& v) const override {
+D:/GitHub/CPP-ISO-proposals/auto-return-override/lab/repos/Catch2/src\catch2\reporters\catch_reporter_common_base.hpp:52:            std::vector<ReporterDescription> const& descriptions ) override;
+D:/GitHub/CPP-ISO-proposals/auto-return-override/lab/repos/Catch2/src\catch2\reporters\catch_reporter_common_base.hpp:60:            std::vector<ListenerDescription> const& descriptions ) override;
+D:/GitHub/CPP-ISO-proposals/auto-return-override/lab/repos/Catch2/src\catch2\reporters\catch_reporter_common_base.hpp:68:        void listTests( std::vector<TestCaseHandle> const& tests ) override;
+D:/GitHub/CPP-ISO-proposals/auto-return-override/lab/repos/Catch2/src\catch2\reporters\catch_reporter_common_base.hpp:75:        void listTags( std::vector<TagInfo> const& tags ) override;
+D:/GitHub/CPP-ISO-proposals/auto-return-override/lab/repos/Catch2/src\catch2\reporters\catch_reporter_event_listener.hpp:38:            std::vector<ReporterDescription> const& descriptions ) override;
+D:/GitHub/CPP-ISO-proposals/auto-return-override/lab/repos/Catch2/src\catch2\reporters\catch_reporter_event_listener.hpp:40:            std::vector<ListenerDescription> const& descriptions ) override;
+D:/GitHub/CPP-ISO-proposals/auto-return-override/lab/repos/Catch2/src\catch2\reporters\catch_reporter_event_listener.hpp:41:        void listTests( std::vector<TestCaseHandle> const& tests ) override;
+D:/GitHub/CPP-ISO-proposals/auto-return-override/lab/repos/Catch2/src\catch2\reporters\catch_reporter_event_listener.hpp:42:        void listTags( std::vector<TagInfo> const& tagInfos ) override;
+D:/GitHub/CPP-ISO-proposals/auto-return-override/lab/repos/Catch2/src\catch2\reporters\catch_reporter_json.hpp:52:            std::vector<ReporterDescription> const& descriptions ) override;
+D:/GitHub/CPP-ISO-proposals/auto-return-override/lab/repos/Catch2/src\catch2\reporters\catch_reporter_json.hpp:54:            std::vector<ListenerDescription> const& descriptions ) override;
+D:/GitHub/CPP-ISO-proposals/auto-return-override/lab/repos/Catch2/src\catch2\reporters\catch_reporter_json.hpp:55:        void listTests( std::vector<TestCaseHandle> const& tests ) override;
+D:/GitHub/CPP-ISO-proposals/auto-return-override/lab/repos/Catch2/src\catch2\reporters\catch_reporter_json.hpp:56:        void listTags( std::vector<TagInfo> const& tags ) override;
+D:/GitHub/CPP-ISO-proposals/auto-return-override/lab/repos/Catch2/src\catch2\reporters\catch_reporter_multi.hpp:67:        void listReporters(std::vector<ReporterDescription> const& descriptions) override;
+D:/GitHub/CPP-ISO-proposals/auto-return-override/lab/repos/Catch2/src\catch2\reporters\catch_reporter_multi.hpp:68:        void listListeners(std::vector<ListenerDescription> const& descriptions) override;
+D:/GitHub/CPP-ISO-proposals/auto-return-override/lab/repos/Catch2/src\catch2\reporters\catch_reporter_multi.hpp:69:        void listTests(std::vector<TestCaseHandle> const& tests) override;
+D:/GitHub/CPP-ISO-proposals/auto-return-override/lab/repos/Catch2/src\catch2\reporters\catch_reporter_multi.hpp:70:        void listTags(std::vector<TagInfo> const& tags) override;
+D:/GitHub/CPP-ISO-proposals/auto-return-override/lab/repos/Catch2/src\catch2\reporters\catch_reporter_xml.hpp:51:        void listReporters(std::vector<ReporterDescription> const& descriptions) override;
+D:/GitHub/CPP-ISO-proposals/auto-return-override/lab/repos/Catch2/src\catch2\reporters\catch_reporter_xml.hpp:52:        void listListeners(std::vector<ListenerDescription> const& descriptions) override;
+D:/GitHub/CPP-ISO-proposals/auto-return-override/lab/repos/Catch2/src\catch2\reporters\catch_reporter_xml.hpp:53:        void listTests(std::vector<TestCaseHandle> const& tests) override;
+D:/GitHub/CPP-ISO-proposals/auto-return-override/lab/repos/Catch2/src\catch2\reporters\catch_reporter_xml.hpp:54:        void listTags(std::vector<TagInfo> const& tags) override;
