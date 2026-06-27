@@ -72,7 +72,10 @@ the feature, discusses the design, and provides proposed wording.
 
 ## R0 {-}
 
-  - Initial revision.
+  - Initial revision. The return type is taken from the overridden function and fixed at
+    the declaration; each `return` statement must already yield that exact type, with no
+    implicit conversion ([design.returns]); `auto` and the written-out return type may be
+    mixed across the in-class declaration and an out-of-line definition ([design.outofline]).
 
 # Motivation and scope
 
@@ -100,6 +103,32 @@ renaming the base, or moving the function through the hierarchy, silently requir
 expression to be updated. Worse, `std::declval`/`decltype` is an advanced idiom that
 obscures a trivial intent: *"return whatever the base returns."*
 
+## How common is this in practice?
+
+This is not a hypothetical inconvenience. A survey of eight widely-used C++ codebases
+(LLVM, Godot, POCO, Catch2, spdlog, range-v3, fmt, and nlohmann/json) found that
+**2,523 of 61,474 single-line overriding declarations — about 4% — restate a verbose or
+dependent return type** that the language already fixes. That is thousands of real sites,
+rising to **7–8% in interface-heavy frameworks** (POCO, spdlog, Catch2). The same return
+type is routinely hand-copied across a whole family of subclasses: clang's
+`ArrayRef<TargetInfo::GCCRegAlias> getGCCRegAliases() const override` is restated verbatim
+in **25** target back-ends, and one Godot OpenXR return type, `HashMap<String, bool *>`, in
+**39**. POCO's database back-ends restate the same statement-factory return type in three
+*different* spellings of the one type (`Poco::SharedPtr<Poco::Data::StatementImpl>`, its
+unqualified form, and the typedef `StatementImpl::Ptr`), so a reader must chase a typedef
+just to confirm the override matches its base. The `decltype(std::declval<…>())` idiom shown
+above is itself real production code: LLVM's PDB unit tests wrap it in a macro precisely to
+avoid writing it out for each of scores of accessor overrides.
+
+The hand-synchronisation this redundancy demands **already fails in practice**. In Godot,
+the base class and eight display-server back-ends declare
+`Vector<DisplayServerEnums::WindowID> get_window_list() const`, but the macOS back-end
+declares the *same* override as `Vector<int>` — a silent divergence that compiles only
+because `WindowID` happens to be an alias for `int`. Under this proposal every back-end
+writes `auto get_window_list() const override` and the inconsistency cannot arise. (These
+counts and examples were gathered by a heuristic text scan cross-checked with a Clang
+AST pass, and every figure is backed by openable `file:line` citations.)
+
 ## What this paper proposes
 
 Allow a virtual override to be written with the bare placeholder type `auto` and no
@@ -114,18 +143,30 @@ struct B : A {
 When a function is declared this way, its return type is determined to be **the return
 type of the unique function it overrides** in a direct or indirect base class. The
 determination happens at the point of declaration from the override relationship — it
-does **not** depend on the function body — so the function behaves exactly as if the
-return type had been written out by hand.
+does **not** depend on the function body — so the return type is fixed wherever the class
+is complete, exactly as if it had been written out by hand.
+
+The function body does not change the return type, but it **is** checked against it: every
+`return` statement must already yield that exact type. A `return` whose operand has a
+*different* type — even one that would implicitly convert — is ill-formed, not silently
+converted (see [design.returns]). This keeps the feature a pure abbreviation of the type
+while refusing to hide the kind of accidental conversion (`const char*` → `bool`, `int` →
+`long`) that an explicitly written-out return type would accept silently.
 
 ## Why this is safe and small
 
 The proposal deliberately ties the feature to the `override` specifier (see
 [design.trigger]). The `override` keyword already makes the program ill-formed unless
 the function overrides a base virtual function ([class.virtual]/4), so by construction
-there is always exactly one return type to copy. The feature therefore introduces no
-new failure mode that `override` did not already diagnose: a function marked `override`
-that fails to override anything is ill-formed today, and remains ill-formed under this
-proposal.
+there is always exactly one return type to copy. The function-matching machinery is
+therefore unchanged: a function marked `override` that fails to override anything is
+ill-formed today, and remains ill-formed under this proposal.
+
+The proposal introduces exactly one new diagnosable situation, and it does so on purpose:
+a `return` statement whose operand does not already have the overridden return type
+([design.returns]). This is a deliberate safety choice — the alternative, silently
+converting the operand to the overridden type, is discussed and rejected in
+[design.returns].
 
 # Design discussion
 
@@ -145,13 +186,16 @@ Tying the feature to `override` has three benefits:
     continues to deduce from its body, exactly as today. Adding or removing a base
     virtual function never silently changes the meaning of an unrelated `auto` function.
 
-## The deduced type is the overridden function's type, exactly {#design.exact}
+## The type comes from the override, fixed at the declaration {#design.exact}
 
-The return type is copied verbatim from the overridden function. It is **not** deduced
-from the override's `return` statements. Two consequences:
+The return type is the overridden function's return type, and it is **determined from the
+override relationship alone**, at the point of declaration — never from the body. This is
+what makes the feature compatible with the existing prohibition on virtual placeholder
+return types (see [design.prohibition]): the type is known wherever the class is complete,
+so vtable layout and override checking proceed exactly as today. Two consequences:
 
-  - The function body is irrelevant to the return type. A declaration with no
-    definition (e.g. an out-of-line definition) is fully supported:
+  - A declaration with no in-class definition is fully supported, because the type is
+    already fixed by the override:
 
     ```cpp
     struct B : A {
@@ -175,6 +219,98 @@ from the override's `return` statements. Two consequences:
 This keeps the rule trivially simple — *the override's type is the overridden function's
 type* — and preserves covariance as an explicit, opt-in act rather than something the
 compiler infers.
+
+## Return statements must already have the overridden type {#design.returns}
+
+Because `auto` everywhere else in the language deduces a function's return type *from its
+body*, the natural question — raised in early review — is what happens when the type a
+`return` statement would yield differs from the overridden type. Consider:
+
+```cpp
+struct A { virtual bool f() = 0; };
+struct B : A {
+  auto f() override { return "pumpkin"; }   // body yields const char*, override says bool
+};
+```
+
+There were two candidate answers:
+
+  1. **Silently convert.** Treat the declaration as pure shorthand for `bool f() override`,
+     so `return "pumpkin"` undergoes the usual `const char*` → `bool` conversion (always
+     `true`). Zero new behavior, but it preserves a sharp footgun: a pointer silently
+     becoming `true`, an `int` silently widening to `long`, all hidden behind `auto`.
+  2. **Require an exact match.** Make the program ill-formed unless every `return`
+     statement already yields the overridden type, forcing the author to convert
+     explicitly.
+
+This paper adopts **(2)**. The rule is: let `T` be the return type of the function being
+overridden. The return type of the function is `T`, and for each `return` statement, the
+type that `auto` would deduce from that statement ([dcl.spec.auto]) shall be `T`;
+otherwise the program is ill-formed. No implicit conversion to `T` is performed.
+
+```cpp
+struct A { virtual long f() = 0; };
+struct B : A {
+  auto f() override { return 0; }                 // ill-formed: 0 is int, not long
+  auto g() override { return 0L; }                // OK
+  auto h() override { return static_cast<long>(x); } // OK: explicit cast
+};
+```
+
+Equivalently — and this is the framing that makes it feel principled rather than special —
+the overridden type behaves as **one additional source of deduction**, exactly as if an
+extra `return` of type `T` were present. The existing rule that a function with multiple
+`return` statements of differing deduced type is ill-formed ([dcl.spec.auto]) then does all
+the work, and `auto f() override` is *not* a second, divergent meaning of `auto` so much as
+ordinary deduction with one extra, authoritative source. The cost is one new diagnostic and
+a little more typing at genuine type mismatches; the benefit is that the abbreviation never
+hides a conversion. Implementations are encouraged to phrase the diagnostic in terms of the
+overridden function (e.g. *"return type `int` does not match `long A::f()`"*) rather than as
+an ambiguous deduction.
+
+## Out-of-line definitions and mixed spellings {#design.outofline}
+
+The return type of an overriding function is fixed by the override regardless of how any
+one declaration spells it. The proposal therefore lets `auto` and the written-out type be
+used interchangeably across the declaration and an out-of-line definition of the same
+overriding function, and makes a *disagreeing* written-out type ill-formed. All four
+combinations are permitted, with the obvious constraint:
+
+```cpp
+struct A { virtual int f() = 0; };
+
+struct B : A {
+  // 1) auto declaration, auto definition
+  auto f() override;
+};
+auto B::f() { return 3; }          // OK: deduces int (the overridden type)
+
+struct C : A {
+  // 2) auto declaration, written-out definition
+  auto f() override;
+};
+int  C::f() { return 3; }          // OK: int matches A::f
+// long C::f() { return 3; }       // ill-formed: long does not match A::f's int
+
+struct D : A {
+  // 3) written-out declaration, auto definition
+  int  f() override;
+};
+auto D::f() { return 3; }          // OK: auto denotes the overridden type, int
+
+struct E : A {
+  // 4) written-out declaration, written-out definition  (status quo)
+  int  f() override;
+};
+int  E::f() { return 3; }          // OK
+```
+
+This deliberately relaxes the existing rule that a redeclaration of a function with a
+placeholder return type must repeat the placeholder ([dcl.spec.auto.general]). The
+relaxation is safe precisely because, for an overriding function, the type is not actually
+being *deduced* across translation units — it is fixed by the base, so every spelling
+(`auto` or the written-out `T`) denotes the same known type, and a mismatch is a local,
+immediately diagnosable error.
 
 ## Ambiguity across multiple base functions
 
@@ -201,7 +337,7 @@ This paper addresses only the bare placeholder `auto`. A virtual function declar
 ill-formed, as today. Extending the feature to those spellings is possible future work
 (see [future]) but is intentionally out of scope to keep the rule minimal.
 
-## Relationship to the existing prohibition on virtual `auto`
+## Relationship to the existing prohibition on virtual `auto` {#design.prohibition}
 
 Today, a function whose declared return type uses a placeholder type "shall not be
 declared `virtual`" — a deduced-from-body return type is incompatible with the vtable
@@ -238,11 +374,13 @@ Modify it to permit the bare-`auto` + `override` form:
 
 > [17]{.pnum} A function declared with a return type that uses a placeholder type shall
 > not be virtual ([class.virtual])[.]{.rm} [unless the placeholder type is the `auto`
-> *type-specifier* not followed by a *trailing-return-type* and the function is declared
-> with the `override` *virt-specifier*; in that case the return type of the function is
-> determined from the function it overrides, as specified in [class.virtual]. [<i>Note</i>:
+> *type-specifier* not followed by a *trailing-return-type* and the function overrides a
+> virtual function and is declared with the `override` *virt-specifier* on its first
+> declaration ([class.virtual]); in that case the return type of the function is the
+> return type of the function it overrides, as specified in [class.virtual]. [<i>Note</i>:
 > The return type of such a function is therefore not deduced from its `return`
-> statements ([dcl.spec.auto.general]). — <i>end note</i>]]{.add}
+> statements; instead, each `return` statement is checked against that return type
+> ([class.virtual]). — <i>end note</i>]]{.add}
 
 *Drafting note.* No other paragraph of [dcl.spec.auto.general] needs to change: paragraph 8
 ("a program that uses a placeholder type in a context not explicitly allowed … is
@@ -266,13 +404,18 @@ Insert after it:
 ::: add
 
 > [8.*]{.pnum} If the declared return type of an overriding function `G` uses the `auto`
-> placeholder type ([dcl.spec.auto]), then `G` is declared with the `override`
-> *virt-specifier* ([dcl.spec.auto.general]) and therefore overrides at least one function
-> ([class.virtual]/5). If the functions that `G` overrides do not all have the same return
-> type, the program is ill-formed. Otherwise, the return type of `G` is that common return
-> type. [<i>Note</i>: This return type is identical to the return type of each overridden
-> function and is therefore not covariant ([class.virtual]/8) with it. A covariant return
-> type must be declared explicitly. — <i>end note</i>]
+> placeholder type ([dcl.spec.auto]), then `G` overrides at least one function and is
+> declared with the `override` *virt-specifier* on its first declaration
+> ([dcl.spec.auto.general]). If the functions that `G` overrides do not all have the same
+> return type, the program is ill-formed. Otherwise, let `T` be that common return type;
+> the return type of `G` is `T`. For each *return statement* in the body of `G`, the type
+> that would be deduced for `auto` from that *return statement* ([dcl.spec.auto]) shall be
+> `T`; no implicit conversion to `T` is performed by virtue of this subclause. [<i>Note</i>:
+> A `return` whose operand has a type other than `T` is therefore ill-formed even when that
+> type is implicitly convertible to `T`; an explicit conversion is required. The return
+> type `T` is identical to the return type of each overridden function and is therefore not
+> covariant ([class.virtual]/8) with it; a covariant return type must be declared
+> explicitly. — <i>end note</i>]
 
 :::
 
@@ -280,7 +423,38 @@ Insert after it:
 the set of overridden functions — and hence "that common return type" — is well-defined
 before `G`'s return type is known; there is no circularity.
 
-## Change 3 — feature-test macro
+## Change 3 — allow `auto` and the written-out type to be mixed across declarations
+
+In **[dcl.spec.auto.general]**, the rule that a redeclaration must repeat the placeholder
+otherwise prevents an out-of-line definition from spelling the return type explicitly while
+the in-class declaration uses `auto`, or vice versa. For an overriding function the return
+type is fixed by the base ([class.virtual]), so this restriction can be relaxed. The
+current text reads (paragraph number provisional):
+
+> [13]{.pnum} Redeclarations or specializations of a function or function template with a
+> declared return type that uses a placeholder type shall also use that placeholder, not a
+> deduced type.
+
+Modify it:
+
+::: add
+
+> [13]{.pnum} Redeclarations or specializations of a function or function template with a
+> declared return type that uses a placeholder type shall also use that placeholder, not a
+> deduced type[.]{.rm}[, except that a declaration of a function that overrides a virtual
+> function ([class.virtual]) may use either the `auto` *type-specifier* without a
+> *trailing-return-type* or the return type of the overridden function, in any combination.
+> If two declarations of such a function specify return types that are not the same type,
+> the program is ill-formed.]{.add}
+
+:::
+
+*Drafting note.* This permits all four combinations of `auto` / written-out return type
+across the in-class declaration and an out-of-line definition of an overriding function
+(see [design.outofline]); a written-out type that disagrees with the overridden type is
+ill-formed and diagnosed locally.
+
+## Change 4 — feature-test macro
 
 In **[cpp.predefined]**, add a row to Table [tab:cpp.predefined.ft] ("Feature-test
 macros"), in alphabetical order among the other `__cpp_` macros:
@@ -303,9 +477,10 @@ which is therefore itself virtual.
 
 | # | Stable label | Location | Edit |
 | --- | --- | --- | --- |
-| 1 | [dcl.spec.auto.general] | para 17 | Append an exception permitting `auto` + `override`; point to [class.virtual] for the resulting type. |
-| 2 | [class.virtual] | new para, after 8 | Fix the return type to the overridden function's; make differing return types across multiple overridden functions ill-formed. |
-| 3 | [cpp.predefined] | Table [tab:cpp.predefined.ft] | Add the `__cpp_deduced_virtual_override_return` feature-test macro. |
+| 1 | [dcl.spec.auto.general] | para 17 | Append an exception permitting `auto` on an overriding function declared `override`; point to [class.virtual] for the resulting type. |
+| 2 | [class.virtual] | new para, after 8 | Fix the return type to the overridden function's; make differing return types across multiple overridden functions ill-formed; require each `return` statement to already yield that exact type (no implicit conversion). |
+| 3 | [dcl.spec.auto.general] | redeclaration para (~p13) | Exempt overriding functions from the "repeat the placeholder" rule, so `auto` and the written-out type may be mixed across declarations; disagreeing written-out types are ill-formed. |
+| 4 | [cpp.predefined] | Table [tab:cpp.predefined.ft] | Add the `__cpp_deduced_virtual_override_return` feature-test macro. |
 
 # Impact on the Standard
 
@@ -333,8 +508,32 @@ The feature requires no novel analysis. A conforming compiler already:
 Implementing the proposal amounts to: when a virtual function's declared return type is
 the bare `auto` placeholder and `override` is present, set the function's return type to
 the overridden function's return type (after the existing override resolution) instead of
-entering body-based deduction. No implementation experience exists yet; the author
-believes a prototype in a major compiler is straightforward and intends to pursue one.
+entering body-based deduction.
+
+This has been confirmed by a prototype in Clang (against LLVM trunk). The implementation is
+a **156-line additive change to Sema**, gated behind `-std=c++2c`, and reuses machinery the
+compiler already runs — override resolution (which executes while the member is declared)
+and the existing `auto` return-type deduction. Concretely:
+
+  - the existing "different return type" diagnostic is *deferred* when an overriding
+    function's declared return type is the bare `auto` placeholder;
+  - once the `override` specifier and the set of overridden functions are known, the
+    function's return type is set to the overridden type and fixed at the declaration, so
+    vtable layout and override checking proceed exactly as for a written-out type;
+  - each `return` statement is checked against that type with no implicit conversion;
+  - mixing `auto` and the written-out type across an in-class declaration and an
+    out-of-line definition is reconciled in the existing redeclaration-merging step, with a
+    disagreeing written-out type diagnosed; and
+  - a feature-test macro `__cpp_deduced_virtual_override_return` is defined.
+
+The prototype passes a positive/negative conformance suite covering every case in this
+paper — the basic form, all four `auto`/written-out out-of-line combinations, a dependent
+return type, cv- and `noexcept`-qualified overrides, and each ill-formed case
+(return-operand mismatch, missing `override`, `decltype(auto)`, disagreeing multiple bases,
+and a disagreeing out-of-line definition) — together with an in-tree `-verify` test.
+Existing override, covariance, and ordinary `auto`-deduction behaviour is unchanged, and
+the same spelling remains ill-formed before C++26. The branch is available at
+*github.com/Alex-Tsvetanov/llvm-project* (branch `auto-return-override`).
 
 # Future directions {#future}
 

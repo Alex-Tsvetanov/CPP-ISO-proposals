@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="generator" content="mpark/wg21" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
-  <meta name="dcterms.date" content="2026-06-25" />
+  <meta name="dcterms.date" content="2026-06-27" />
   <title>Deduced return type for overriding functions via `auto`</title>
   <style>
 
@@ -141,7 +141,7 @@ overriding functions via
   </tr>
   <tr>
     <td>Date:</td>
-    <td>2026-06-25</td>
+    <td>2026-06-27</td>
   </tr>
   <tr>
     <td style="vertical-align:top">Project:</td>
@@ -175,25 +175,31 @@ overriding functions via
 <li><a href="#motivation-and-scope" id="toc-motivation-and-scope"><span class="toc-section-number">4</span> Motivation and scope</a>
 <ul>
 <li><a href="#the-problem" id="toc-the-problem"><span class="toc-section-number">4.1</span> The problem</a></li>
-<li><a href="#what-this-paper-proposes" id="toc-what-this-paper-proposes"><span class="toc-section-number">4.2</span> What this paper proposes</a></li>
-<li><a href="#why-this-is-safe-and-small" id="toc-why-this-is-safe-and-small"><span class="toc-section-number">4.3</span> Why this is safe and
+<li><a href="#how-common-is-this-in-practice" id="toc-how-common-is-this-in-practice"><span class="toc-section-number">4.2</span> How common is this in
+practice?</a></li>
+<li><a href="#what-this-paper-proposes" id="toc-what-this-paper-proposes"><span class="toc-section-number">4.3</span> What this paper proposes</a></li>
+<li><a href="#why-this-is-safe-and-small" id="toc-why-this-is-safe-and-small"><span class="toc-section-number">4.4</span> Why this is safe and
 small</a></li>
 </ul></li>
 <li><a href="#design-discussion" id="toc-design-discussion"><span class="toc-section-number">5</span> Design discussion</a>
 <ul>
 <li><a href="#design.trigger" id="toc-design.trigger"><span class="toc-section-number">5.1</span> The feature is triggered only by
 <code class="sourceCode cpp"><span class="kw">override</span></code></a></li>
-<li><a href="#design.exact" id="toc-design.exact"><span class="toc-section-number">5.2</span> The deduced type is the overridden
-function’s type, exactly</a></li>
-<li><a href="#ambiguity-across-multiple-base-functions" id="toc-ambiguity-across-multiple-base-functions"><span class="toc-section-number">5.3</span> Ambiguity across multiple base
+<li><a href="#design.exact" id="toc-design.exact"><span class="toc-section-number">5.2</span> The type comes from the override,
+fixed at the declaration</a></li>
+<li><a href="#design.returns" id="toc-design.returns"><span class="toc-section-number">5.3</span> Return statements must already
+have the overridden type</a></li>
+<li><a href="#design.outofline" id="toc-design.outofline"><span class="toc-section-number">5.4</span> Out-of-line definitions and mixed
+spellings</a></li>
+<li><a href="#ambiguity-across-multiple-base-functions" id="toc-ambiguity-across-multiple-base-functions"><span class="toc-section-number">5.5</span> Ambiguity across multiple base
 functions</a></li>
-<li><a href="#decltypeauto-and-other-placeholders" id="toc-decltypeauto-and-other-placeholders"><span class="toc-section-number">5.4</span>
+<li><a href="#decltypeauto-and-other-placeholders" id="toc-decltypeauto-and-other-placeholders"><span class="toc-section-number">5.6</span>
 <code class="sourceCode cpp"><span class="kw">decltype</span><span class="op">(</span><span class="kw">auto</span><span class="op">)</span></code>
 and other placeholders</a></li>
-<li><a href="#relationship-to-the-existing-prohibition-on-virtual-auto" id="toc-relationship-to-the-existing-prohibition-on-virtual-auto"><span class="toc-section-number">5.5</span> Relationship to the existing
+<li><a href="#design.prohibition" id="toc-design.prohibition"><span class="toc-section-number">5.7</span> Relationship to the existing
 prohibition on virtual
 <code class="sourceCode cpp"><span class="kw">auto</span></code></a></li>
-<li><a href="#interaction-with-final-access-noexcept-and-qualifiers" id="toc-interaction-with-final-access-noexcept-and-qualifiers"><span class="toc-section-number">5.6</span> Interaction with
+<li><a href="#interaction-with-final-access-noexcept-and-qualifiers" id="toc-interaction-with-final-access-noexcept-and-qualifiers"><span class="toc-section-number">5.8</span> Interaction with
 <code class="sourceCode cpp"><span class="kw">final</span></code>,
 access,
 <code class="sourceCode cpp"><span class="kw">noexcept</span></code>,
@@ -205,9 +211,12 @@ and qualifiers</a></li>
 virtual-function prohibition</a></li>
 <li><a href="#change-2-specify-the-return-type-from-the-overridden-function" id="toc-change-2-specify-the-return-type-from-the-overridden-function"><span class="toc-section-number">6.2</span> Change 2 — specify the return type
 from the overridden function</a></li>
-<li><a href="#change-3-feature-test-macro" id="toc-change-3-feature-test-macro"><span class="toc-section-number">6.3</span> Change 3 — feature-test
+<li><a href="#change-3-allow-auto-and-the-written-out-type-to-be-mixed-across-declarations" id="toc-change-3-allow-auto-and-the-written-out-type-to-be-mixed-across-declarations"><span class="toc-section-number">6.3</span> Change 3 — allow
+<code class="sourceCode cpp"><span class="kw">auto</span></code> and the
+written-out type to be mixed across declarations</a></li>
+<li><a href="#change-4-feature-test-macro" id="toc-change-4-feature-test-macro"><span class="toc-section-number">6.4</span> Change 4 — feature-test
 macro</a></li>
-<li><a href="#summary-of-edits" id="toc-summary-of-edits"><span class="toc-section-number">6.4</span> Summary of edits</a></li>
+<li><a href="#summary-of-edits" id="toc-summary-of-edits"><span class="toc-section-number">6.5</span> Summary of edits</a></li>
 </ul></li>
 <li><a href="#impact-on-the-standard" id="toc-impact-on-the-standard"><span class="toc-section-number">7</span> Impact on the Standard</a></li>
 <li><a href="#implementation-experience" id="toc-implementation-experience"><span class="toc-section-number">8</span> Implementation experience</a></li>
@@ -291,7 +300,14 @@ wording.</p>
 <h1 data-number="3" id="revision-history"><span class="header-section-number">3</span> Revision history<a href="#revision-history" class="self-link"></a></h1>
 <h2 class="unnumbered" id="r0">R0<a href="#r0" class="self-link"></a></h2>
 <ul>
-<li>Initial revision.</li>
+<li>Initial revision. The return type is taken from the overridden
+function and fixed at the declaration; each
+<code class="sourceCode cpp"><span class="cf">return</span></code>
+statement must already yield that exact type, with no implicit
+conversion ([design.returns]);
+<code class="sourceCode cpp"><span class="kw">auto</span></code> and the
+written-out return type may be mixed across the in-class declaration and
+an out-of-line definition ([design.outofline]).</li>
 </ul>
 <h1 data-number="4" id="motivation-and-scope"><span class="header-section-number">4</span> Motivation and scope<a href="#motivation-and-scope" class="self-link"></a></h1>
 <h2 data-number="4.1" id="the-problem"><span class="header-section-number">4.1</span> The problem<a href="#the-problem" class="self-link"></a></h2>
@@ -316,7 +332,49 @@ Worse,
 <code class="sourceCode cpp">std<span class="op">::</span>declval</code>/<code class="sourceCode cpp"><span class="kw">decltype</span></code>
 is an advanced idiom that obscures a trivial intent: <em>“return
 whatever the base returns.”</em></p>
-<h2 data-number="4.2" id="what-this-paper-proposes"><span class="header-section-number">4.2</span> What this paper proposes<a href="#what-this-paper-proposes" class="self-link"></a></h2>
+<h2 data-number="4.2" id="how-common-is-this-in-practice"><span class="header-section-number">4.2</span> How common is this in
+practice?<a href="#how-common-is-this-in-practice" class="self-link"></a></h2>
+<p>This is not a hypothetical inconvenience. A survey of eight
+widely-used C++ codebases (LLVM, Godot, POCO, Catch2, spdlog, range-v3,
+fmt, and nlohmann/json) found that <strong>2,523 of 61,474 single-line
+overriding declarations — about 4% — restate a verbose or dependent
+return type</strong> that the language already fixes. That is thousands
+of real sites, rising to <strong>7–8% in interface-heavy
+frameworks</strong> (POCO, spdlog, Catch2). The same return type is
+routinely hand-copied across a whole family of subclasses: clang’s
+<code class="sourceCode cpp">ArrayRef<span class="op">&lt;</span>TargetInfo<span class="op">::</span>GCCRegAlias<span class="op">&gt;</span> getGCCRegAliases<span class="op">()</span> <span class="kw">const</span> <span class="kw">override</span></code>
+is restated verbatim in <strong>25</strong> target back-ends, and one
+Godot OpenXR return type,
+<code class="sourceCode cpp">HashMap<span class="op">&lt;</span>String<span class="op">,</span> <span class="dt">bool</span> <span class="op">*&gt;</span></code>,
+in <strong>39</strong>. POCO’s database back-ends restate the same
+statement-factory return type in three <em>different</em> spellings of
+the one type
+(<code class="sourceCode cpp">Poco<span class="op">::</span>SharedPtr<span class="op">&lt;</span>Poco<span class="op">::</span>Data<span class="op">::</span>StatementImpl<span class="op">&gt;</span></code>,
+its unqualified form, and the typedef
+<code class="sourceCode cpp">StatementImpl<span class="op">::</span>Ptr</code>),
+so a reader must chase a typedef just to confirm the override matches
+its base. The
+<code class="sourceCode cpp"><span class="kw">decltype</span><span class="op">(</span>std<span class="op">::</span>declval<span class="op">&lt;</span>…<span class="op">&gt;())</span></code>
+idiom shown above is itself real production code: LLVM’s PDB unit tests
+wrap it in a macro precisely to avoid writing it out for each of scores
+of accessor overrides.</p>
+<p>The hand-synchronisation this redundancy demands <strong>already
+fails in practice</strong>. In Godot, the base class and eight
+display-server back-ends declare
+<code class="sourceCode cpp">Vector<span class="op">&lt;</span>DisplayServerEnums<span class="op">::</span>WindowID<span class="op">&gt;</span> get_window_list<span class="op">()</span> <span class="kw">const</span></code>,
+but the macOS back-end declares the <em>same</em> override as
+<code class="sourceCode cpp">Vector<span class="op">&lt;</span><span class="dt">int</span><span class="op">&gt;</span></code>
+— a silent divergence that compiles only because
+<code class="sourceCode cpp">WindowID</code> happens to be an alias for
+<code class="sourceCode cpp"><span class="dt">int</span></code>. Under
+this proposal every back-end writes
+<code class="sourceCode cpp"><span class="kw">auto</span> get_window_list<span class="op">()</span> <span class="kw">const</span> <span class="kw">override</span></code>
+and the inconsistency cannot arise. (These counts and examples were
+gathered by a heuristic text scan cross-checked with a Clang AST pass,
+and every figure is backed by openable
+<code class="sourceCode cpp">file<span class="op">:</span>line</code>
+citations.)</p>
+<h2 data-number="4.3" id="what-this-paper-proposes"><span class="header-section-number">4.3</span> What this paper proposes<a href="#what-this-paper-proposes" class="self-link"></a></h2>
 <p>Allow a virtual override to be written with the bare placeholder type
 <code class="sourceCode cpp"><span class="kw">auto</span></code> and no
 trailing-return-type:</p>
@@ -327,9 +385,24 @@ trailing-return-type:</p>
 to be <strong>the return type of the unique function it
 overrides</strong> in a direct or indirect base class. The determination
 happens at the point of declaration from the override relationship — it
-does <strong>not</strong> depend on the function body — so the function
-behaves exactly as if the return type had been written out by hand.</p>
-<h2 data-number="4.3" id="why-this-is-safe-and-small"><span class="header-section-number">4.3</span> Why this is safe and small<a href="#why-this-is-safe-and-small" class="self-link"></a></h2>
+does <strong>not</strong> depend on the function body — so the return
+type is fixed wherever the class is complete, exactly as if it had been
+written out by hand.</p>
+<p>The function body does not change the return type, but it
+<strong>is</strong> checked against it: every
+<code class="sourceCode cpp"><span class="cf">return</span></code>
+statement must already yield that exact type. A
+<code class="sourceCode cpp"><span class="cf">return</span></code> whose
+operand has a <em>different</em> type — even one that would implicitly
+convert — is ill-formed, not silently converted (see [design.returns]).
+This keeps the feature a pure abbreviation of the type while refusing to
+hide the kind of accidental conversion
+(<code class="sourceCode cpp"><span class="kw">const</span> <span class="dt">char</span><span class="op">*</span></code>
+→ <code class="sourceCode cpp"><span class="dt">bool</span></code>,
+<code class="sourceCode cpp"><span class="dt">int</span></code> →
+<code class="sourceCode cpp"><span class="dt">long</span></code>) that
+an explicitly written-out return type would accept silently.</p>
+<h2 data-number="4.4" id="why-this-is-safe-and-small"><span class="header-section-number">4.4</span> Why this is safe and small<a href="#why-this-is-safe-and-small" class="self-link"></a></h2>
 <p>The proposal deliberately ties the feature to the
 <code class="sourceCode cpp"><span class="kw">override</span></code>
 specifier (see [design.trigger]). The
@@ -337,12 +410,17 @@ specifier (see [design.trigger]). The
 keyword already makes the program ill-formed unless the function
 overrides a base virtual function (<a href="https://eel.is/c++draft/class.virtual#4" title="11.7.3 Virtual functions, paragraph 4">[class.virtual]/4</a>), so
 by construction there is always exactly one return type to copy. The
-feature therefore introduces no new failure mode that
-<code class="sourceCode cpp"><span class="kw">override</span></code> did
-not already diagnose: a function marked
+function-matching machinery is therefore unchanged: a function marked
 <code class="sourceCode cpp"><span class="kw">override</span></code>
 that fails to override anything is ill-formed today, and remains
 ill-formed under this proposal.</p>
+<p>The proposal introduces exactly one new diagnosable situation, and it
+does so on purpose: a
+<code class="sourceCode cpp"><span class="cf">return</span></code>
+statement whose operand does not already have the overridden return type
+([design.returns]). This is a deliberate safety choice — the
+alternative, silently converting the operand to the overridden type, is
+discussed and rejected in [design.returns].</p>
 <h1 data-number="5" id="design-discussion"><span class="header-section-number">5</span> Design discussion<a href="#design-discussion" class="self-link"></a></h1>
 <h2 data-number="5.1" id="design.trigger"><span class="header-section-number">5.1</span> The feature is triggered only
 by
@@ -374,16 +452,18 @@ silently changes the meaning of an unrelated
 <code class="sourceCode cpp"><span class="kw">auto</span></code>
 function.</li>
 </ul>
-<h2 data-number="5.2" id="design.exact"><span class="header-section-number">5.2</span> The deduced type is the
-overridden function’s type, exactly<a href="#design.exact" class="self-link"></a></h2>
-<p>The return type is copied verbatim from the overridden function. It
-is <strong>not</strong> deduced from the override’s
-<code class="sourceCode cpp"><span class="cf">return</span></code>
-statements. Two consequences:</p>
+<h2 data-number="5.2" id="design.exact"><span class="header-section-number">5.2</span> The type comes from the
+override, fixed at the declaration<a href="#design.exact" class="self-link"></a></h2>
+<p>The return type is the overridden function’s return type, and it is
+<strong>determined from the override relationship alone</strong>, at the
+point of declaration — never from the body. This is what makes the
+feature compatible with the existing prohibition on virtual placeholder
+return types (see [design.prohibition]): the type is known wherever the
+class is complete, so vtable layout and override checking proceed
+exactly as today. Two consequences:</p>
 <ul>
-<li><p>The function body is irrelevant to the return type. A declaration
-with no definition (e.g. an out-of-line definition) is fully
-supported:</p>
+<li><p>A declaration with no in-class definition is fully supported,
+because the type is already fixed by the override:</p>
 <div class="sourceCode" id="cb5"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> B <span class="op">:</span> A <span class="op">{</span></span>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">auto</span> test<span class="op">()</span> <span class="kw">override</span><span class="op">;</span>     <span class="co">// return type is A::test&#39;s type: int</span></span>
 <span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="op">};</span></span>
@@ -408,21 +488,142 @@ explicitly:</p>
 <p>This keeps the rule trivially simple — <em>the override’s type is the
 overridden function’s type</em> — and preserves covariance as an
 explicit, opt-in act rather than something the compiler infers.</p>
-<h2 data-number="5.3" id="ambiguity-across-multiple-base-functions"><span class="header-section-number">5.3</span> Ambiguity across multiple base
+<h2 data-number="5.3" id="design.returns"><span class="header-section-number">5.3</span> Return statements must already
+have the overridden type<a href="#design.returns" class="self-link"></a></h2>
+<p>Because
+<code class="sourceCode cpp"><span class="kw">auto</span></code>
+everywhere else in the language deduces a function’s return type
+<em>from its body</em>, the natural question — raised in early review —
+is what happens when the type a
+<code class="sourceCode cpp"><span class="cf">return</span></code>
+statement would yield differs from the overridden type. Consider:</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> A <span class="op">{</span> <span class="kw">virtual</span> <span class="dt">bool</span> f<span class="op">()</span> <span class="op">=</span> <span class="dv">0</span><span class="op">;</span> <span class="op">};</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> B <span class="op">:</span> A <span class="op">{</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>  <span class="kw">auto</span> f<span class="op">()</span> <span class="kw">override</span> <span class="op">{</span> <span class="cf">return</span> <span class="st">&quot;pumpkin&quot;</span><span class="op">;</span> <span class="op">}</span>   <span class="co">// body yields const char*, override says bool</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="op">};</span></span></code></pre></div>
+<p>There were two candidate answers:</p>
+<ol type="1">
+<li><strong>Silently convert.</strong> Treat the declaration as pure
+shorthand for
+<code class="sourceCode cpp"><span class="dt">bool</span> f<span class="op">()</span> <span class="kw">override</span></code>,
+so
+<code class="sourceCode cpp"><span class="cf">return</span> <span class="st">&quot;pumpkin&quot;</span></code>
+undergoes the usual
+<code class="sourceCode cpp"><span class="kw">const</span> <span class="dt">char</span><span class="op">*</span></code>
+→ <code class="sourceCode cpp"><span class="dt">bool</span></code>
+conversion (always
+<code class="sourceCode cpp"><span class="kw">true</span></code>). Zero
+new behavior, but it preserves a sharp footgun: a pointer silently
+becoming
+<code class="sourceCode cpp"><span class="kw">true</span></code>, an
+<code class="sourceCode cpp"><span class="dt">int</span></code> silently
+widening to
+<code class="sourceCode cpp"><span class="dt">long</span></code>, all
+hidden behind
+<code class="sourceCode cpp"><span class="kw">auto</span></code>.</li>
+<li><strong>Require an exact match.</strong> Make the program ill-formed
+unless every
+<code class="sourceCode cpp"><span class="cf">return</span></code>
+statement already yields the overridden type, forcing the author to
+convert explicitly.</li>
+</ol>
+<p>This paper adopts <strong>(2)</strong>. The rule is: let
+<code class="sourceCode cpp">T</code> be the return type of the function
+being overridden. The return type of the function is
+<code class="sourceCode cpp">T</code>, and for each
+<code class="sourceCode cpp"><span class="cf">return</span></code>
+statement, the type that
+<code class="sourceCode cpp"><span class="kw">auto</span></code> would
+deduce from that statement (<a href="https://eel.is/c++draft/dcl.spec.auto" title="9.2.9.7 Placeholder type specifiers">[dcl.spec.auto]</a>) shall
+be <code class="sourceCode cpp">T</code>; otherwise the program is
+ill-formed. No implicit conversion to
+<code class="sourceCode cpp">T</code> is performed.</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> A <span class="op">{</span> <span class="kw">virtual</span> <span class="dt">long</span> f<span class="op">()</span> <span class="op">=</span> <span class="dv">0</span><span class="op">;</span> <span class="op">};</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> B <span class="op">:</span> A <span class="op">{</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>  <span class="kw">auto</span> f<span class="op">()</span> <span class="kw">override</span> <span class="op">{</span> <span class="cf">return</span> <span class="dv">0</span><span class="op">;</span> <span class="op">}</span>                 <span class="co">// ill-formed: 0 is int, not long</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>  <span class="kw">auto</span> g<span class="op">()</span> <span class="kw">override</span> <span class="op">{</span> <span class="cf">return</span> <span class="dv">0</span><span class="bu">L</span><span class="op">;</span> <span class="op">}</span>                <span class="co">// OK</span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>  <span class="kw">auto</span> h<span class="op">()</span> <span class="kw">override</span> <span class="op">{</span> <span class="cf">return</span> <span class="kw">static_cast</span><span class="op">&lt;</span><span class="dt">long</span><span class="op">&gt;(</span>x<span class="op">);</span> <span class="op">}</span> <span class="co">// OK: explicit cast</span></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a><span class="op">};</span></span></code></pre></div>
+<p>Equivalently — and this is the framing that makes it feel principled
+rather than special — the overridden type behaves as <strong>one
+additional source of deduction</strong>, exactly as if an extra
+<code class="sourceCode cpp"><span class="cf">return</span></code> of
+type <code class="sourceCode cpp">T</code> were present. The existing
+rule that a function with multiple
+<code class="sourceCode cpp"><span class="cf">return</span></code>
+statements of differing deduced type is ill-formed (<a href="https://eel.is/c++draft/dcl.spec.auto" title="9.2.9.7 Placeholder type specifiers">[dcl.spec.auto]</a>) then
+does all the work, and
+<code class="sourceCode cpp"><span class="kw">auto</span> f<span class="op">()</span> <span class="kw">override</span></code>
+is <em>not</em> a second, divergent meaning of
+<code class="sourceCode cpp"><span class="kw">auto</span></code> so much
+as ordinary deduction with one extra, authoritative source. The cost is
+one new diagnostic and a little more typing at genuine type mismatches;
+the benefit is that the abbreviation never hides a conversion.
+Implementations are encouraged to phrase the diagnostic in terms of the
+overridden function (e.g. <em>“return type
+<code class="sourceCode cpp"><span class="dt">int</span></code> does not
+match
+<code class="sourceCode cpp"><span class="dt">long</span> A<span class="op">::</span>f<span class="op">()</span></code>”</em>)
+rather than as an ambiguous deduction.</p>
+<h2 data-number="5.4" id="design.outofline"><span class="header-section-number">5.4</span> Out-of-line definitions and
+mixed spellings<a href="#design.outofline" class="self-link"></a></h2>
+<p>The return type of an overriding function is fixed by the override
+regardless of how any one declaration spells it. The proposal therefore
+lets <code class="sourceCode cpp"><span class="kw">auto</span></code>
+and the written-out type be used interchangeably across the declaration
+and an out-of-line definition of the same overriding function, and makes
+a <em>disagreeing</em> written-out type ill-formed. All four
+combinations are permitted, with the obvious constraint:</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> A <span class="op">{</span> <span class="kw">virtual</span> <span class="dt">int</span> f<span class="op">()</span> <span class="op">=</span> <span class="dv">0</span><span class="op">;</span> <span class="op">};</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> B <span class="op">:</span> A <span class="op">{</span></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>  <span class="co">// 1) auto declaration, auto definition</span></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>  <span class="kw">auto</span> f<span class="op">()</span> <span class="kw">override</span><span class="op">;</span></span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a><span class="op">};</span></span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> B<span class="op">::</span>f<span class="op">()</span> <span class="op">{</span> <span class="cf">return</span> <span class="dv">3</span><span class="op">;</span> <span class="op">}</span>          <span class="co">// OK: deduces int (the overridden type)</span></span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> C <span class="op">:</span> A <span class="op">{</span></span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>  <span class="co">// 2) auto declaration, written-out definition</span></span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>  <span class="kw">auto</span> f<span class="op">()</span> <span class="kw">override</span><span class="op">;</span></span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a><span class="op">};</span></span>
+<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span>  C<span class="op">::</span>f<span class="op">()</span> <span class="op">{</span> <span class="cf">return</span> <span class="dv">3</span><span class="op">;</span> <span class="op">}</span>          <span class="co">// OK: int matches A::f</span></span>
+<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a><span class="co">// long C::f() { return 3; }       // ill-formed: long does not match A::f&#39;s int</span></span>
+<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-16"><a href="#cb9-16" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> D <span class="op">:</span> A <span class="op">{</span></span>
+<span id="cb9-17"><a href="#cb9-17" aria-hidden="true" tabindex="-1"></a>  <span class="co">// 3) written-out declaration, auto definition</span></span>
+<span id="cb9-18"><a href="#cb9-18" aria-hidden="true" tabindex="-1"></a>  <span class="dt">int</span>  f<span class="op">()</span> <span class="kw">override</span><span class="op">;</span></span>
+<span id="cb9-19"><a href="#cb9-19" aria-hidden="true" tabindex="-1"></a><span class="op">};</span></span>
+<span id="cb9-20"><a href="#cb9-20" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> D<span class="op">::</span>f<span class="op">()</span> <span class="op">{</span> <span class="cf">return</span> <span class="dv">3</span><span class="op">;</span> <span class="op">}</span>          <span class="co">// OK: auto denotes the overridden type, int</span></span>
+<span id="cb9-21"><a href="#cb9-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-22"><a href="#cb9-22" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> E <span class="op">:</span> A <span class="op">{</span></span>
+<span id="cb9-23"><a href="#cb9-23" aria-hidden="true" tabindex="-1"></a>  <span class="co">// 4) written-out declaration, written-out definition  (status quo)</span></span>
+<span id="cb9-24"><a href="#cb9-24" aria-hidden="true" tabindex="-1"></a>  <span class="dt">int</span>  f<span class="op">()</span> <span class="kw">override</span><span class="op">;</span></span>
+<span id="cb9-25"><a href="#cb9-25" aria-hidden="true" tabindex="-1"></a><span class="op">};</span></span>
+<span id="cb9-26"><a href="#cb9-26" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span>  E<span class="op">::</span>f<span class="op">()</span> <span class="op">{</span> <span class="cf">return</span> <span class="dv">3</span><span class="op">;</span> <span class="op">}</span>          <span class="co">// OK</span></span></code></pre></div>
+<p>This deliberately relaxes the existing rule that a redeclaration of a
+function with a placeholder return type must repeat the placeholder (<a href="https://eel.is/c++draft/dcl.spec.auto.general" title="9.2.9.7.1 General">[dcl.spec.auto.general]</a>). The relaxation
+is safe precisely because, for an overriding function, the type is not
+actually being <em>deduced</em> across translation units — it is fixed
+by the base, so every spelling
+(<code class="sourceCode cpp"><span class="kw">auto</span></code> or the
+written-out <code class="sourceCode cpp">T</code>) denotes the same
+known type, and a mismatch is a local, immediately diagnosable
+error.</p>
+<h2 data-number="5.5" id="ambiguity-across-multiple-base-functions"><span class="header-section-number">5.5</span> Ambiguity across multiple base
 functions<a href="#ambiguity-across-multiple-base-functions" class="self-link"></a></h2>
 <p>A function may override more than one base function under multiple
 inheritance. If the overridden functions do not all have the same return
 type, there is no single type to copy and the program is ill-formed:</p>
-<div class="sourceCode" id="cb7"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> A <span class="op">{</span> <span class="kw">virtual</span> <span class="dt">int</span>  f<span class="op">();</span> <span class="op">};</span></span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> C <span class="op">{</span> <span class="kw">virtual</span> <span class="dt">long</span> f<span class="op">();</span> <span class="op">};</span></span>
-<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> D <span class="op">:</span> A<span class="op">,</span> C <span class="op">{</span></span>
-<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>  <span class="kw">auto</span> f<span class="op">()</span> <span class="kw">override</span><span class="op">;</span>  <span class="co">// ill-formed: A::f returns int, C::f returns long</span></span>
-<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a><span class="op">};</span></span></code></pre></div>
+<div class="sourceCode" id="cb10"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> A <span class="op">{</span> <span class="kw">virtual</span> <span class="dt">int</span>  f<span class="op">();</span> <span class="op">};</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> C <span class="op">{</span> <span class="kw">virtual</span> <span class="dt">long</span> f<span class="op">();</span> <span class="op">};</span></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> D <span class="op">:</span> A<span class="op">,</span> C <span class="op">{</span></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>  <span class="kw">auto</span> f<span class="op">()</span> <span class="kw">override</span><span class="op">;</span>  <span class="co">// ill-formed: A::f returns int, C::f returns long</span></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a><span class="op">};</span></span></code></pre></div>
 <p>Note this case is already ill-formed today for a different reason (an
 override cannot simultaneously satisfy two incompatible base return
 types), so the proposal does not introduce a new diagnosable situation
 here; it only specifies which diagnostic applies.</p>
-<h2 data-number="5.4" id="decltypeauto-and-other-placeholders"><span class="header-section-number">5.4</span>
+<h2 data-number="5.6" id="decltypeauto-and-other-placeholders"><span class="header-section-number">5.6</span>
 <code class="sourceCode cpp"><span class="kw">decltype</span><span class="op">(</span><span class="kw">auto</span><span class="op">)</span></code>
 and other placeholders<a href="#decltypeauto-and-other-placeholders" class="self-link"></a></h2>
 <p>This paper addresses only the bare placeholder
@@ -434,9 +635,9 @@ or a constrained placeholder
 remains ill-formed, as today. Extending the feature to those spellings
 is possible future work (see [future]) but is intentionally out of scope
 to keep the rule minimal.</p>
-<h2 data-number="5.5" id="relationship-to-the-existing-prohibition-on-virtual-auto"><span class="header-section-number">5.5</span> Relationship to the existing
+<h2 data-number="5.7" id="design.prohibition"><span class="header-section-number">5.7</span> Relationship to the existing
 prohibition on virtual
-<code class="sourceCode cpp"><span class="kw">auto</span></code><a href="#relationship-to-the-existing-prohibition-on-virtual-auto" class="self-link"></a></h2>
+<code class="sourceCode cpp"><span class="kw">auto</span></code><a href="#design.prohibition" class="self-link"></a></h2>
 <p>Today, a function whose declared return type uses a placeholder type
 “shall not be declared
 <code class="sourceCode cpp"><span class="kw">virtual</span></code>” — a
@@ -450,7 +651,7 @@ type, which is visible wherever the derived class is complete), so every
 translation unit agrees on the type without seeing the body. The
 proposal therefore carves a narrow, well-defined exception out of the
 existing prohibition rather than removing it.</p>
-<h2 data-number="5.6" id="interaction-with-final-access-noexcept-and-qualifiers"><span class="header-section-number">5.6</span> Interaction with
+<h2 data-number="5.8" id="interaction-with-final-access-noexcept-and-qualifiers"><span class="header-section-number">5.8</span> Interaction with
 <code class="sourceCode cpp"><span class="kw">final</span></code>,
 access,
 <code class="sourceCode cpp"><span class="kw">noexcept</span></code>,
@@ -488,12 +689,16 @@ form:</p>
 <p><span class="marginalizedparent"><a href="#pnum-2" id="pnum-2" class="marginalized">17</a></span> A function declared with a return
 type that uses a placeholder type shall not be virtual (<a href="https://eel.is/c++draft/class.virtual" title="11.7.3 Virtual functions">[class.virtual]</a>)<span class="rm" style="color: #bf0303"><del>.</del></span> <span class="add" style="color: #006e28"><ins>unless the placeholder type is the
 <code class="sourceCode default cpp">auto</code> <em>type-specifier</em>
-not followed by a <em>trailing-return-type</em> and the function is
-declared with the <code class="sourceCode default cpp">override</code>
-<em>virt-specifier</em>; in that case the return type of the function is
-determined from the function it overrides, as specified in <a href="https://eel.is/c++draft/class.virtual" title="11.7.3 Virtual functions">[class.virtual]</a>. [<i>Note</i>: The
+not followed by a <em>trailing-return-type</em> and the function
+overrides a virtual function and is declared with the
+<code class="sourceCode default cpp">override</code>
+<em>virt-specifier</em> on its first declaration (<a href="https://eel.is/c++draft/class.virtual" title="11.7.3 Virtual functions">[class.virtual]</a>); in that case the
+return type of the function is the return type of the function it
+overrides, as specified in <a href="https://eel.is/c++draft/class.virtual" title="11.7.3 Virtual functions">[class.virtual]</a>. [<i>Note</i>: The
 return type of such a function is therefore not deduced from its
-<code class="sourceCode default cpp">return</code> statements (<a href="https://eel.is/c++draft/dcl.spec.auto.general" title="9.2.9.7.1 General">[dcl.spec.auto.general]</a>). — <i>end
+<code class="sourceCode default cpp">return</code> statements; instead,
+each <code class="sourceCode default cpp">return</code> statement is
+checked against that return type (<a href="https://eel.is/c++draft/class.virtual" title="11.7.3 Virtual functions">[class.virtual]</a>). — <i>end
 note</i>]</ins></span></p>
 </blockquote>
 <p><em>Drafting note.</em> No other paragraph of <a href="https://eel.is/c++draft/dcl.spec.auto.general" title="9.2.9.7.1 General">[dcl.spec.auto.general]</a> needs to change:
@@ -524,17 +729,30 @@ function or covariant with the classes of the functions. […]</p>
 overriding function <code class="sourceCode default cpp">G</code> uses
 the <code class="sourceCode default cpp">auto</code> placeholder type
 (<a href="https://eel.is/c++draft/dcl.spec.auto" title="9.2.9.7 Placeholder type specifiers">[dcl.spec.auto]</a>), then
-<code class="sourceCode default cpp">G</code> is declared with the
+<code class="sourceCode default cpp">G</code> overrides at least one
+function and is declared with the
 <code class="sourceCode default cpp">override</code>
-<em>virt-specifier</em> (<a href="https://eel.is/c++draft/dcl.spec.auto.general" title="9.2.9.7.1 General">[dcl.spec.auto.general]</a>) and therefore
-overrides at least one function (<a href="https://eel.is/c++draft/class.virtual#5" title="11.7.3 Virtual functions, paragraph 5">[class.virtual]/5</a>). If
-the functions that <code class="sourceCode default cpp">G</code>
-overrides do not all have the same return type, the program is
-ill-formed. Otherwise, the return type of
-<code class="sourceCode default cpp">G</code> is that common return
-type. [<i>Note</i>: This return type is identical to the return type of
-each overridden function and is therefore not covariant (<a href="https://eel.is/c++draft/class.virtual#8" title="11.7.3 Virtual functions, paragraph 8">[class.virtual]/8</a>)
-with it. A covariant return type must be declared explicitly. — <i>end
+<em>virt-specifier</em> on its first declaration (<a href="https://eel.is/c++draft/dcl.spec.auto.general" title="9.2.9.7.1 General">[dcl.spec.auto.general]</a>). If the functions
+that <code class="sourceCode default cpp">G</code> overrides do not all
+have the same return type, the program is ill-formed. Otherwise, let
+<code class="sourceCode default cpp">T</code> be that common return
+type; the return type of <code class="sourceCode default cpp">G</code>
+is <code class="sourceCode default cpp">T</code>. For each <em>return
+statement</em> in the body of
+<code class="sourceCode default cpp">G</code>, the type that would be
+deduced for <code class="sourceCode default cpp">auto</code> from that
+<em>return statement</em> (<a href="https://eel.is/c++draft/dcl.spec.auto" title="9.2.9.7 Placeholder type specifiers">[dcl.spec.auto]</a>) shall
+be <code class="sourceCode default cpp">T</code>; no implicit conversion
+to <code class="sourceCode default cpp">T</code> is performed by virtue
+of this subclause. [<i>Note</i>: A
+<code class="sourceCode default cpp">return</code> whose operand has a
+type other than <code class="sourceCode default cpp">T</code> is
+therefore ill-formed even when that type is implicitly convertible to
+<code class="sourceCode default cpp">T</code>; an explicit conversion is
+required. The return type <code class="sourceCode default cpp">T</code>
+is identical to the return type of each overridden function and is
+therefore not covariant (<a href="https://eel.is/c++draft/class.virtual#8" title="11.7.3 Virtual functions, paragraph 8">[class.virtual]/8</a>)
+with it; a covariant return type must be declared explicitly. — <i>end
 note</i>]</p>
 </blockquote>
 
@@ -544,7 +762,48 @@ not consult the return type, the set of overridden functions — and hence
 “that common return type” — is well-defined before
 <code class="sourceCode cpp">G</code>’s return type is known; there is
 no circularity.</p>
-<h2 data-number="6.3" id="change-3-feature-test-macro"><span class="header-section-number">6.3</span> Change 3 — feature-test macro<a href="#change-3-feature-test-macro" class="self-link"></a></h2>
+<h2 data-number="6.3" id="change-3-allow-auto-and-the-written-out-type-to-be-mixed-across-declarations"><span class="header-section-number">6.3</span> Change 3 — allow
+<code class="sourceCode cpp"><span class="kw">auto</span></code> and the
+written-out type to be mixed across declarations<a href="#change-3-allow-auto-and-the-written-out-type-to-be-mixed-across-declarations" class="self-link"></a></h2>
+<p>In <strong><a href="https://eel.is/c++draft/dcl.spec.auto.general" title="9.2.9.7.1 General">[dcl.spec.auto.general]</a></strong>, the rule
+that a redeclaration must repeat the placeholder otherwise prevents an
+out-of-line definition from spelling the return type explicitly while
+the in-class declaration uses
+<code class="sourceCode cpp"><span class="kw">auto</span></code>, or
+vice versa. For an overriding function the return type is fixed by the
+base (<a href="https://eel.is/c++draft/class.virtual" title="11.7.3 Virtual functions">[class.virtual]</a>), so this
+restriction can be relaxed. The current text reads (paragraph number
+provisional):</p>
+<blockquote>
+<p><span class="marginalizedparent"><a href="#pnum-5" id="pnum-5" class="marginalized">13</a></span> Redeclarations or specializations of
+a function or function template with a declared return type that uses a
+placeholder type shall also use that placeholder, not a deduced
+type.</p>
+</blockquote>
+<p>Modify it:</p>
+<div class="add" style="color: #006e28">
+
+<blockquote>
+<p><span class="marginalizedparent"><a href="#pnum-6" id="pnum-6" class="marginalized">13</a></span> Redeclarations or specializations of
+a function or function template with a declared return type that uses a
+placeholder type shall also use that placeholder, not a deduced
+type<span class="rm" style="color: #bf0303"><del>.</del></span><span class="add" style="color: #006e28"><ins>, except that a declaration of a
+function that overrides a virtual function (<a href="https://eel.is/c++draft/class.virtual" title="11.7.3 Virtual functions">[class.virtual]</a>) may use either the
+<code class="sourceCode default cpp">auto</code> <em>type-specifier</em>
+without a <em>trailing-return-type</em> or the return type of the
+overridden function, in any combination. If two declarations of such a
+function specify return types that are not the same type, the program is
+ill-formed.</ins></span></p>
+</blockquote>
+
+</div>
+<p><em>Drafting note.</em> This permits all four combinations of
+<code class="sourceCode cpp"><span class="kw">auto</span></code> /
+written-out return type across the in-class declaration and an
+out-of-line definition of an overriding function (see
+[design.outofline]); a written-out type that disagrees with the
+overridden type is ill-formed and diagnosed locally.</p>
+<h2 data-number="6.4" id="change-4-feature-test-macro"><span class="header-section-number">6.4</span> Change 4 — feature-test macro<a href="#change-4-feature-test-macro" class="self-link"></a></h2>
 <p>In <strong><a href="https://eel.is/c++draft/cpp.predefined" title="15.12 Predefined macro names">[cpp.predefined]</a></strong>, add
 a row to Table [tab:cpp.predefined.ft] (“Feature-test macros”), in
 alphabetical order among the other
@@ -582,7 +841,7 @@ applies precisely to virtual functions:
 <code class="sourceCode cpp"><span class="kw">override</span></code> is
 permitted only on a function that overrides a base virtual function (<a href="https://eel.is/c++draft/class.virtual#5" title="11.7.3 Virtual functions, paragraph 5">[class.virtual]/5</a>),
 which is therefore itself virtual.</p>
-<h2 data-number="6.4" id="summary-of-edits"><span class="header-section-number">6.4</span> Summary of edits<a href="#summary-of-edits" class="self-link"></a></h2>
+<h2 data-number="6.5" id="summary-of-edits"><span class="header-section-number">6.5</span> Summary of edits<a href="#summary-of-edits" class="self-link"></a></h2>
 <table>
 <colgroup>
 <col style="width: 25%" />
@@ -612,7 +871,8 @@ which is therefore itself virtual.</p>
 <td><a href="https://eel.is/c++draft/dcl.spec.auto.general" title="9.2.9.7.1 General">[dcl.spec.auto.general]</a></td>
 <td>para 17</td>
 <td>Append an exception permitting
-<code class="sourceCode cpp"><span class="kw">auto</span></code> +
+<code class="sourceCode cpp"><span class="kw">auto</span></code> on an
+overriding function declared
 <code class="sourceCode cpp"><span class="kw">override</span></code>;
 point to <a href="https://eel.is/c++draft/class.virtual" title="11.7.3 Virtual functions">[class.virtual]</a> for the resulting
 type.</td>
@@ -622,10 +882,22 @@ type.</td>
 <td><a href="https://eel.is/c++draft/class.virtual" title="11.7.3 Virtual functions">[class.virtual]</a></td>
 <td>new para, after 8</td>
 <td>Fix the return type to the overridden function’s; make differing
-return types across multiple overridden functions ill-formed.</td>
+return types across multiple overridden functions ill-formed; require
+each <code class="sourceCode cpp"><span class="cf">return</span></code>
+statement to already yield that exact type (no implicit
+conversion).</td>
 </tr>
 <tr>
 <td>3</td>
+<td><a href="https://eel.is/c++draft/dcl.spec.auto.general" title="9.2.9.7.1 General">[dcl.spec.auto.general]</a></td>
+<td>redeclaration para (~p13)</td>
+<td>Exempt overriding functions from the “repeat the placeholder” rule,
+so <code class="sourceCode cpp"><span class="kw">auto</span></code> and
+the written-out type may be mixed across declarations; disagreeing
+written-out types are ill-formed.</td>
+</tr>
+<tr>
+<td>4</td>
 <td><a href="https://eel.is/c++draft/cpp.predefined" title="15.12 Predefined macro names">[cpp.predefined]</a></td>
 <td>Table [tab:cpp.predefined.ft]</td>
 <td>Add the
@@ -670,9 +942,55 @@ placeholder and
 <code class="sourceCode cpp"><span class="kw">override</span></code> is
 present, set the function’s return type to the overridden function’s
 return type (after the existing override resolution) instead of entering
-body-based deduction. No implementation experience exists yet; the
-author believes a prototype in a major compiler is straightforward and
-intends to pursue one.</p>
+body-based deduction.</p>
+<p>This has been confirmed by a prototype in Clang (against LLVM trunk).
+The implementation is a <strong>156-line additive change to
+Sema</strong>, gated behind
+<code class="sourceCode cpp"><span class="op">-</span>std<span class="op">=</span>c<span class="op">++</span><span class="dv">2</span><span class="er">c</span></code>,
+and reuses machinery the compiler already runs — override resolution
+(which executes while the member is declared) and the existing
+<code class="sourceCode cpp"><span class="kw">auto</span></code>
+return-type deduction. Concretely:</p>
+<ul>
+<li>the existing “different return type” diagnostic is <em>deferred</em>
+when an overriding function’s declared return type is the bare
+<code class="sourceCode cpp"><span class="kw">auto</span></code>
+placeholder;</li>
+<li>once the
+<code class="sourceCode cpp"><span class="kw">override</span></code>
+specifier and the set of overridden functions are known, the function’s
+return type is set to the overridden type and fixed at the declaration,
+so vtable layout and override checking proceed exactly as for a
+written-out type;</li>
+<li>each
+<code class="sourceCode cpp"><span class="cf">return</span></code>
+statement is checked against that type with no implicit conversion;</li>
+<li>mixing
+<code class="sourceCode cpp"><span class="kw">auto</span></code> and the
+written-out type across an in-class declaration and an out-of-line
+definition is reconciled in the existing redeclaration-merging step,
+with a disagreeing written-out type diagnosed; and</li>
+<li>a feature-test macro
+<code class="sourceCode cpp">__cpp_deduced_virtual_override_return</code>
+is defined.</li>
+</ul>
+<p>The prototype passes a positive/negative conformance suite covering
+every case in this paper — the basic form, all four
+<code class="sourceCode cpp"><span class="kw">auto</span></code>/written-out
+out-of-line combinations, a dependent return type, cv- and
+<code class="sourceCode cpp"><span class="kw">noexcept</span></code>-qualified
+overrides, and each ill-formed case (return-operand mismatch, missing
+<code class="sourceCode cpp"><span class="kw">override</span></code>,
+<code class="sourceCode cpp"><span class="kw">decltype</span><span class="op">(</span><span class="kw">auto</span><span class="op">)</span></code>,
+disagreeing multiple bases, and a disagreeing out-of-line definition) —
+together with an in-tree
+<code class="sourceCode cpp"><span class="op">-</span>verify</code>
+test. Existing override, covariance, and ordinary
+<code class="sourceCode cpp"><span class="kw">auto</span></code>-deduction
+behaviour is unchanged, and the same spelling remains ill-formed before
+C++26. The branch is available at
+<em>github.com/Alex-Tsvetanov/llvm-project</em> (branch
+<code class="sourceCode cpp"><span class="kw">auto</span><span class="op">-</span><span class="cf">return</span><span class="op">-</span><span class="kw">override</span></code>).</p>
 <h1 data-number="9" id="future"><span class="header-section-number">9</span> Future directions<a href="#future" class="self-link"></a></h1>
 <p>The following are intentionally <strong>out of scope</strong> for
 this paper but are natural follow-ups:</p>
